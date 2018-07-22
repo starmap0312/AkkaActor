@@ -14,5 +14,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.1", // akka JSON marshaller Support
   "org.jsoup" % "jsoup" % "1.8.3",
   "org.slf4j" % "slf4j-api" % "1.7.+",
-  "junit" % "junit" % "4.11" % "test"
+  // packages for testing
+  //"junit" % "junit" % "4.11" % "test",
+  "org.scalatest" %% "scalatest" % "3.+" % Test,
+  "org.scalacheck" %% "scalacheck" % "1.+" % Test,
+  "com.typesafe.akka" %% "akka-testkit" % "2.+" % Test,
 )
