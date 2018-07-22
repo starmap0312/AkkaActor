@@ -1,6 +1,6 @@
 package akka_actors
 
-import akka.actor.{Actor, ActorSystem, Props}
+import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 
 // 1) Actor class:
 //
@@ -35,7 +35,7 @@ object CounterExample extends App {
     }
   }
 
-  class Printer extends Actor {
+  class Printer extends Actor with ActorLogging {
     val counter = context.actorOf(Props[Counter], "counter") // create a counter Actor
 
     counter ! "increment"
@@ -45,7 +45,7 @@ object CounterExample extends App {
 
     override def receive: Receive = {
       case count: Int => {
-        println(s"count=${count}")
+        log.debug("count={}", count) // [DEBUG] [07/22/2018 15:42:38.645] [akka://CounterExample/user/printer] count=3
         context.stop(self)
       }
     }
