@@ -1,6 +1,6 @@
 package akka_actors
 
-import akka.Done
+//import akka.Done
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props, ReceiveTimeout, Status}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
@@ -89,7 +89,6 @@ object CrawlerExample extends App {
         }
         cache += url
       case Getter.Done =>
-        log.debug("hi")
         children -= sender
         if (children.isEmpty) { // when no Getter is running, return the result URLs to the parent Actor
           context.parent ! Result(cache)
@@ -105,6 +104,7 @@ object CrawlerExample extends App {
     case class Job(cleint: ActorRef, url: String)
     case class Get(url: String)
     case class Failed(url: String)
+    case class Result(url: String, links: Set[String])
   }
   class Receptionist extends Actor with ActorLogging {
     import Receptionist._
@@ -120,9 +120,10 @@ object CrawlerExample extends App {
       // upon receiving Get(url), append the task to the queue and keep running
       // upon receiving Controller.Result(links) ship that to client and run next job of the queue
       case Controller.Result(links) =>
+        log.debug("receive Result(links): {}", links.toVector.sorted.mkString("\n"))
         val job = queue.head
-        job.cleint ! Controller.Result(links)
-        context.stop(sender)
+        job.cleint ! Result(job.url, links)
+        context.stop(sender) // stop the controller, as it is done with its job (we will use a new one for next job)
         context.become(runNext(queue.tail))
       case Get(url) =>
         context.become(enqueueJob(queue, Job(sender, url)))
@@ -133,7 +134,7 @@ object CrawlerExample extends App {
       reqNo += 1 // as every actor must have a unique name, we use a variable reqNo as its ID
       if (queue.isEmpty) waiting
       else {
-        val controller = context.actorOf(Props[Controller], s"controller ${reqNo}")
+        val controller = context.actorOf(Props[Controller], s"controller${reqNo}")
         controller ! Controller.Check(queue.head.url, 2)
         running(queue)
       }
@@ -162,5 +163,23 @@ object CrawlerExample extends App {
   get("http://www.google.com") onComplete {
     println _
   }*/
-  system.terminate()
+  class Client extends Actor with ActorLogging {
+    import Receptionist._
+    val receptionist = system.actorOf(Props[Receptionist], "receptionist")
+
+    receptionist ! Receptionist.Get("http://www.google.com")
+
+    context.setReceiveTimeout(10.seconds)
+
+    override def receive: Receive = {
+      case Result(url, links) =>
+        log.debug("Client receives Result({})", links.toVector.sorted.mkString("\n"))
+      case Failed(url) =>
+        log.debug("Fail({})", url)
+      case ReceiveTimeout =>
+        context.stop(self)
+    }
+  }
+  val client = system.actorOf(Props[Client], "client")
+  //system.terminate()
 }
