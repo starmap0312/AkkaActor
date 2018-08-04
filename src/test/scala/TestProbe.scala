@@ -19,6 +19,7 @@ class Toggle extends Actor {
 }
 
 class TestProbe extends TestKit(ActorSystem("TestProbe")) with FlatSpecLike with BeforeAndAfterAll {
+  // the test class has a ActorSystem, i.e. system, as its constructor parameter
 
   override def afterAll(): Unit = { // as the class extends BeforeAndAfterAll, we can specify what to do after all tests
     system.terminate()
