@@ -6,12 +6,14 @@ import scala.concurrent.duration._
 
 class Toggle extends Actor {
   def happy: Receive = {
-    case "hi" =>
+    case msg @ "hi" =>
+      println(msg)
       sender ! "happy"
       context.become(sad)
   }
   def sad: Receive = {
-    case "hi" =>
+    case msg @ "hi" =>
+      println(msg)
       sender ! "sad"
       context.become(happy)
   }
