@@ -43,26 +43,35 @@ class PostOffice(userService: ActorRef) extends Actor {
 
   override def receive: Receive = {
     case Get(mail) =>
-      (userService ? UserService.FindMail(mail)). // ask returns a Future
-        mapTo[UserService.UserInfo]. // mapTo maps Future[Any] to some type Future[UserInfo]
+      (userService ? MailService.FindMail()). // ask returns a Future
+        mapTo[MailService.Mails]. // mapTo maps Future[Any] to some type Future[UserInfo]
         map(info => info.mails.filter(_ == mail)). // map UserInfo to a List of mails
         recover { case ex => Failure(ex) }. // if the Future fails with exception, recover it to a Failure
         pipeTo(sender) // pipeTo() tells the sender a [value] in case of Success([value])
                        // or it tells the sender a Status.Failure([exception]) in case of Failure([exception])
+    // or we can aggregate messages from multiple actors
+    //case Get(mail, user) =>
+    //  val response = for {
+    //    mails <- (mailService ? mail).mapTo[Mails]
+    //    users <- (userService ? user).mapTo[Users]
+    //  } yield {
+    //    Result(mails, users)
+    //  }
+    //  response pipeTo sender
   }
 }
 
-object UserService {
-  case class FindMail(mail: String)
-  case class UserInfo() {
+object MailService {
+  case class FindMail()
+  case class Mails() {
     val mails: List[String] = List("mail1", "mail2", "mail3", "mail4")
   }
 }
-class UserService extends Actor {
-  import UserService._
+class MailService extends Actor {
+  import MailService._
   override def receive: Receive = {
-    case FindMail(mail) =>
-      sender ! UserInfo()
+    case FindMail() =>
+      sender ! Mails()
   }
 }
 
@@ -81,7 +90,7 @@ class ActorComposition extends TestKit(ActorSystem("TestProbe")) with FlatSpecLi
   }
 
   "In the Ask Pattern, one" can "ask an actor for some message and pipeTo the original sender" in {
-    val userService = system.actorOf(Props[UserService], name = "userService")
+    val userService = system.actorOf(Props[MailService], name = "userService")
     val postOffice = system.actorOf(PostOffice.props(userService), name = "postOffice")
     val user = TestProbe(name = "user")
     user.send(postOffice, PostOffice.Get("mail2"))
