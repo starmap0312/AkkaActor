@@ -1,8 +1,9 @@
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
-import akka.pattern.ask  // this is needed to call the ask() method of (actorRef ? Message)
-import akka.util.Timeout // this is needed to define implicit timeout for (actorRef ? Message)
-import akka.pattern.pipe // this is needed to call the pipeTo() method of (future pipeTo actorRef)
-import scala.concurrent.ExecutionContext.Implicits.global // this is needed to use (future pipeTo actorRef)
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props, SupervisorStrategy, Terminated}
+import akka.pattern.ask
+import akka.util.Timeout
+import akka.pattern.pipe
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import akka.testkit.{TestKit, TestProbe}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike}
 
@@ -38,6 +39,8 @@ object PostOffice {
   def props(userService: ActorRef): Props = Props(new PostOffice(userService))
 }
 class PostOffice(userService: ActorRef) extends Actor {
+  // the subordinate actor, userService, as a constructor parameter
+  // (or we can create a new ephemeral actor per request, and stop it after each task)
   import PostOffice._
   implicit val timeout = Timeout(3.seconds) // timeout of asking userService actor
 
@@ -60,6 +63,43 @@ class PostOffice(userService: ActorRef) extends Actor {
     //  response pipeTo sender
   }
 }
+
+// requestor (receive success/failure) <-> supervisor (apply life cycle monitoring) <-> subordinate (perform dangerous tasks)
+
+// 2) Perform Risky Tasks
+object FileWriter {
+  case class Write(text: String)
+  case object Done
+  case object Failed
+}
+class FileWriter extends Actor {
+  import FileWriter._
+  val workerToCustomer = scala.collection.mutable.Map.empty[ActorRef, ActorRef] // remember who are working on dangerous tasks
+  override val supervisorStrategy = SupervisorStrategy.stoppingStrategy
+
+  override def receive: Receive = {
+    case Write(text: String) =>
+      val worker = context.actorOf(Props(new FileWorker())) // create a new actor for a new dangerous task
+      worker ! text
+      context.watch(worker) // watch the actor, so that we can get Terminated message when worker fails to complete the dangerous task
+      workerToCustomer += (worker -> sender)
+    case Done =>
+      workerToCustomer.get(sender).foreach(_ ! Done)
+      workerToCustomer -= sender
+    case Terminated(worker) =>
+      workerToCustomer.get(worker).foreach(_ ! Failed)
+      workerToCustomer -= worker
+  }
+}
+
+class FileWorker() extends Actor with ActorLogging {
+  override def receive: Receive = {
+    case FileWriter.Write(text) =>
+      log.info("write text: {}", text)
+      sender ! FileWriter.Done
+  }
+}
+
 
 object MailService {
   case class FindMail()
