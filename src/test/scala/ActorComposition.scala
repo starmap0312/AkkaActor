@@ -36,9 +36,12 @@ class Auditor(target: ActorRef) extends Actor with ActorLogging {
 // 2) The Ask Pattern
 object PostOffice {
   case class Get(mail: String)
+  case class Gets(mail: String, user: String)
+  case class Gets2(mail: String, user: String)
+  case class Result(mails: List[String], users: List[String])
   def props(userService: ActorRef): Props = Props(new PostOffice(userService))
 }
-class PostOffice(userService: ActorRef) extends Actor {
+class PostOffice(mailService: ActorRef) extends Actor {
   // the subordinate actor, userService, as a constructor parameter
   // (or we can create a new ephemeral actor per request, and stop it after each task)
   import PostOffice._
@@ -46,27 +49,69 @@ class PostOffice(userService: ActorRef) extends Actor {
 
   override def receive: Receive = {
     case Get(mail) =>
-      (userService ? MailService.FindMail()). // ask returns a Future
+      (mailService ? MailService.FindMail()). // ask returns a Future
         mapTo[MailService.Mails]. // mapTo maps Future[Any] to some type Future[UserInfo]
-        map(info => info.mails.filter(_ == mail)). // map UserInfo to a List of mails
+        map(service => service.mails.filter(_ == mail)). // map UserInfo to a List of mails
         recover { case ex => Failure(ex) }. // if the Future fails with exception, recover it to a Failure
         pipeTo(sender) // pipeTo() tells the sender a [value] in case of Success([value])
                        // or it tells the sender a Status.Failure([exception]) in case of Failure([exception])
-    // or we can aggregate messages from multiple actors
-    //case Get(mail, user) =>
-    //  val response = for {
-    //    mails <- (mailService ? mail).mapTo[Mails]
-    //    users <- (userService ? user).mapTo[Users]
-    //  } yield {
-    //    Result(mails, users)
-    //  }
-    //  response pipeTo sender
+    // 3) The Aggregate Pattern: aggregate messages from multiple actors
+    case Gets(mail, user) =>
+      val userService = context.actorOf(Props[UserService], "userService")
+      val response = for {
+        mailService <- (mailService ? MailService.FindMail()).mapTo[MailService.Mails]
+        userService <- (userService ? UserService.FindUser()).mapTo[UserService.Users]
+      } yield {
+        Result(mailService.mails.filter(_ == mail), userService.users.filter(_ == user))
+      }
+      response pipeTo sender
+    // or we can send messages to both services simultaneously
+    case Gets2(mail, user) =>
+      val userService = context.actorOf(Props[UserService], "userService2")
+      val mailFuture = (mailService ? MailService.FindMail()).mapTo[MailService.Mails]
+      val userFuture = (userService ? UserService.FindUser()).mapTo[UserService.Users]
+      val response2 = for {
+        mails <- mailFuture
+        users <- userFuture
+      } yield {
+        Result(mails.mails.filter(_ == mail), users.users.filter(_ == user))
+      }
+      response2 pipeTo sender
+
+  }
+}
+
+object MailService {
+  case class FindMail()
+  case class Mails() {
+    val mails: List[String] = List("mail1", "mail2", "mail3", "mail4")
+  }
+}
+class MailService extends Actor {
+  import MailService._
+  override def receive: Receive = {
+    case FindMail() =>
+      sender ! Mails()
+  }
+}
+
+object UserService {
+  case class FindUser()
+  case class Users() {
+    val users: List[String] = List("user1", "user2", "user3", "user4")
+  }
+}
+class UserService extends Actor {
+  import UserService._
+  override def receive: Receive = {
+    case FindUser() =>
+      sender ! Users()
   }
 }
 
 // requestor (receive success/failure) <-> supervisor (apply life cycle monitoring) <-> subordinate (perform dangerous tasks)
 
-// 2) Perform Risky Tasks
+// 3) Perform Dangerous Tasks
 object FileWriter {
   case class Write(text: String)
   case object Done
@@ -99,21 +144,7 @@ class FileWorker() extends Actor with ActorLogging {
       sender ! FileWriter.Done
   }
 }
-
-
-object MailService {
-  case class FindMail()
-  case class Mails() {
-    val mails: List[String] = List("mail1", "mail2", "mail3", "mail4")
-  }
-}
-class MailService extends Actor {
-  import MailService._
-  override def receive: Receive = {
-    case FindMail() =>
-      sender ! Mails()
-  }
-}
+// other dangerous tasks: ex. validation, rate limitation, access control, etc.
 
 class ActorComposition extends TestKit(ActorSystem("TestProbe")) with FlatSpecLike with BeforeAndAfterAll {
   // the test class has a ActorSystem, i.e. system, as its constructor parameter
@@ -130,11 +161,21 @@ class ActorComposition extends TestKit(ActorSystem("TestProbe")) with FlatSpecLi
   }
 
   "In the Ask Pattern, one" can "ask an actor for some message and pipeTo the original sender" in {
-    val userService = system.actorOf(Props[MailService], name = "userService")
-    val postOffice = system.actorOf(PostOffice.props(userService), name = "postOffice")
+    val mailService = system.actorOf(Props[MailService], name = "mailService")
+    val postOffice = system.actorOf(PostOffice.props(mailService), name = "postOffice")
     val user = TestProbe(name = "user")
     user.send(postOffice, PostOffice.Get("mail2"))
     user.expectMsg(List("mail2"))
+  }
+
+  "In the Aggregate Pattern, one" can "ask multiple actors for messages and pipeTo the original sender" in {
+    val mailService = system.actorOf(Props[MailService], name = "mailService2")
+    val postOffice = system.actorOf(PostOffice.props(mailService), name = "postOffice2")
+    val user = TestProbe(name = "user")
+    user.send(postOffice, PostOffice.Gets("mail2", "user3"))
+    user.expectMsg(PostOffice.Result(List("mail2"), List("user3")))
+    user.send(postOffice, PostOffice.Gets2("mail3", "user4"))
+    user.expectMsg(PostOffice.Result(List("mail3"), List("user4")))
   }
 
 }
