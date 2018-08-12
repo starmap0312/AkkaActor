@@ -73,7 +73,7 @@ class Routing extends TestKit(ActorSystem("Routing")) with FlatSpecLike with Bef
     system.terminate()
   }
 
-  "Create a Router inside an actor which" can "be used to send/route messages to Routees" ignore {
+  "Create a Router inside an actor which" can "be used to send/route messages to Routees" in {
     val master = system.actorOf(Props[Master], name = "master")
     val probe = TestProbe(name = "testProbe")
     probe.send(master, Master.Work); Thread.sleep(100) // [akka://Routing/user/master/$a] Receive Work message

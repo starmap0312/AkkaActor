@@ -45,7 +45,7 @@ class PostOffice(mailService: ActorRef) extends Actor {
   // the subordinate actor, userService, as a constructor parameter
   // (or we can create a new ephemeral actor per request, and stop it after each task)
   import PostOffice._
-  implicit val timeout = Timeout(3.seconds) // timeout of asking userService actor
+  implicit val timeout = Timeout(3.seconds) // timeout of asking mailService actor
 
   override def receive: Receive = {
     case Get(mail) =>
