@@ -45,9 +45,11 @@ class Master extends Actor {
 // 1) A Router Actor: a self contained actor responsible for managing the routees
 //      it loads routing logic and other settings from configuration
 //    two distinct flavors:
-//    i)  Pool: The router creates routees as child actors and removes them from the router if they terminate
-//    ii) Group: The routee actors are created externally to the router and
-//               the router sends messages to the specified path using actor selection, without watching for termination
+//    i)  Pool:
+//        The router creates routees as child actors and removes them from the router if they terminate
+//    ii) Group:
+//        The routee actors are created externally, i.e. create routees separately and provide them to the router for its use
+//        The router sends messages to the specified path using actor selection, without watching for termination
 
 // i) create router from a Pool:
 class Master2 extends Actor {
