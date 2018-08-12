@@ -34,6 +34,7 @@ class Retriever(userService: ActorRef) extends Actor with ActorLogging {
 
   override def receive: Receive = {
     case Get(user) =>
+      // use the circuit breaker to send message to other actors, so that circuit will be open if overloaded
       val response = cb.withCircuitBreaker(userService ? user).mapTo[String]
       response pipeTo sender
   }
