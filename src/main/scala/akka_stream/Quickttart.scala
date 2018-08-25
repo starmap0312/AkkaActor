@@ -38,7 +38,7 @@ object Quickttart extends App {
   // example2: source.scan([initial value])([func]): like foldLeft()?
   //   use the scan operator to run a computation over the whole stream: starting with the number 1
   //   i.e. 1, 1 * 1, 1 * 1 * 2, 1 * 1 * 2 * 3 ...
-  //        1 1 2 6 24 120 ...
+  //        1 1 2 6 24 120 ... 3628800
   //   note: nothing is actually computed yet, this is a description of what we want to do once we run the stream
   val factorials = source.scan(BigInt(1))((acc, next) => acc * next)
   // def scan(zero: BigInt)(func: (BigInt, Out) => BigInt): Repr[BigInt]
@@ -55,7 +55,7 @@ object Quickttart extends App {
   // example3:
   val tweets: Source[String, NotUsed] = Source("tweet1" :: "tweet2" :: Nil)
   tweets
-    .map(_.toUpperCase) // Get all sets of tweets ...
+    .map(_.toUpperCase)     // Get all sets of tweets ...
     .reduce(_ ++ ", " ++ _) // reduce them to a single set
-    .runWith(Sink.foreach(println)) // Attach the Flow to a Sink that will finally print the tweets
+    .runWith(Sink.foreach(println)) // TWEET1, TWEET2: Attach the Flow to a Sink that will finally print the tweets
 }
