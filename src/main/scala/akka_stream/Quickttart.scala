@@ -10,9 +10,17 @@ import akka.util.ByteString
 
 import scala.concurrent.Future
 
+// Reactive Streams:
+// 1) Akka Streams implements the Reactive Streams specification
+// 2) Reactive Streams' main goals:
+//    i) backpressure
+//   ii) async and non-blocking boundaries
+//  iii) interoperability between different implementations
+
 object Quickttart extends App {
   implicit val system = ActorSystem("QuickStart")
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer = ActorMaterializer() // an evaluation engine for the streams (note: akka streams are evaluated on top of actors)
+  // "implicit" makes compiler be able to inject these dependencies automatically whenever they are needed
 
   // 1) Source:       a Source is a description of the source you want to run, which can be transformed
   // 2) Sink:         a Sink is a set of stream processing steps that has one open input. it can be used as a Subscriber
