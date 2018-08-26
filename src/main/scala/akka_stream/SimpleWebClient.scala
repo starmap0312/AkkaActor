@@ -29,5 +29,5 @@ object SimpleWebClient extends App {
   outgoingConnectionFlow.join(flow).run()
   // Join this Flow to another Flow, by cross connecting the inputs and outputs
 
-
+  //  in contrast to the simple web server, we don't have to manage the incoming connections anymore
 }

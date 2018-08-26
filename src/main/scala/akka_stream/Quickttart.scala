@@ -5,10 +5,11 @@ import java.nio.file.Paths
 import akka.{Done, NotUsed}
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.stream.{ActorMaterializer, IOResult}
-import akka.stream.scaladsl.{FileIO, Flow, Sink, Source}
+import akka.stream.scaladsl.{FileIO, Flow, Keep, RunnableGraph, Sink, Source}
 import akka.util.ByteString
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 
 // Reactive Streams:
 // 1) Akka Streams implements the Reactive Streams specification
@@ -71,9 +72,9 @@ object Quickttart extends App {
     .runWith(Sink.foreach(println)) // TWEET1, TWEET2: Attach the Flow to a Sink that will finally print the tweets
 
   // 4) RunnableFlow: a special form of a Flow, i.e. a stream that can be executed by just calling its run() method
-  val src = Source(1 to 3)                                  // Source[Int, NotUsed], where NotUsed is type of the materialized value
-  val sink = Sink.foreach[Int](element => println(element)) // Sink[Int, Future[Done]], where Future[Done] is a future of type of the materialized value
-  val flow = src to sink // source.to([sink])               // RunnableGraph[NotUsed], where NotUsed is type of the materialized value
+  val src: Source[Int, NotUsed] = Source(1 to 3)                                     // Source[Int, NotUsed], where NotUsed is type of the materialized value
+  val sink: Sink[Int, Future[Done]] = Sink.foreach[Int](element => println(element)) // Sink[Int, Future[Done]], where Future[Done] is a future of type of the materialized value
+  val flow: RunnableGraph[NotUsed] = src to sink // source.to([sink])                // RunnableGraph[NotUsed], where NotUsed is type of the materialized value
   flow.run() // 1 2 3                                       // NotUsed, where NotUsed is type of the materialized value (what we get when we run a stream: ex. side effects)
 
   // 5) Sink as an actor (vs. simple use case: ex. Sink as a Function1)
@@ -93,4 +94,17 @@ object Quickttart extends App {
   val runnable2 = Source(1 to 3) via invertFlow to Sink.foreach(element => println(element))
   // source.via([Flow]): the via() method connects a Source with a Flow, resulting a new Source
   runnable2.run() // -1 -2 -3
+
+  // 7) materialized value:
+  //    after running (materializing) the RunnableGraph[T] we get back the materialized value of type T
+  //    every stream processing stage can produce a materialized value
+  val sumSink: Sink[Int, Future[Int]] = Sink.fold[Int, Int](0)(_ + _)
+  val runnable3: RunnableGraph[Future[Int]] = Source(1 to 10).toMat(sumSink)(Keep.right) // we are interested in the materialized value of sink (not source)
+  // deafult is Keep.left: i.e. val runnable3: RunnableGraph[NotUsed] = Source(1 to 10).to(sumSink)
+  val sumFuture: Future[Int] = runnable3.run() // materialize the stream, resulting in the materialized value of sink
+  println(Await.result(sumFuture, 1.seconds))  // 1 + 2 + .... + 10 = 55
+  // a stream can expose multiple materialized values, but it is quite common to be interested in:
+  // i) only the value of the Source in the stream: ex. NotUsed or
+  //ii) only the value of the Sink in the stream:   ex. Future[Done], Future[Int], etc.
+  system.terminate()
 }
