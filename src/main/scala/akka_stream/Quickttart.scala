@@ -18,6 +18,15 @@ import scala.concurrent.duration._
 //   ii) async and non-blocking boundaries
 //  iii) interoperability between different implementations
 
+// 1) Akka Streams: a library to process and transfer a sequence of elements using "bounded" buffer space
+//    a chain (stream/graph) of processing entities
+//      each of these entities executes independently/concurrently
+//      only buffering a limited number of elements at any given time
+// 2) Akka Streams vs. Actor Model:
+//    in Actor Model, each actor has an "unbounded"/"dropping" mailbox
+//    in Akka Streams, processing entities have a "bounded" mailbox (never dropping)
+//      it uses back-pressure to control the flow instead
+
 object Quickttart extends App {
   implicit val system = ActorSystem("QuickStart")
   implicit val materializer = ActorMaterializer() // an evaluation engine for the streams (note: akka streams are evaluated on top of actors)
@@ -75,7 +84,7 @@ object Quickttart extends App {
   val src: Source[Int, NotUsed] = Source(1 to 3)                                     // Source[Int, NotUsed], where NotUsed is type of the materialized value
   val sink: Sink[Int, Future[Done]] = Sink.foreach[Int](element => println(element)) // Sink[Int, Future[Done]], where Future[Done] is a future of type of the materialized value
   val flow: RunnableGraph[NotUsed] = src to sink // source.to([sink])                // RunnableGraph[NotUsed], where NotUsed is type of the materialized value
-  flow.run() // 1 2 3                                       // NotUsed, where NotUsed is type of the materialized value (what we get when we run a stream: ex. side effects)
+  val matValue3: NotUsed = flow.run() // 1 2 3                                       // NotUsed, where NotUsed is type of the materialized value (what we get when we run a stream: ex. side effects)
 
   // 5) Sink as an actor (vs. simple use case: ex. Sink as a Function1)
   val sinkActor = system.actorOf(Props(
@@ -87,13 +96,13 @@ object Quickttart extends App {
   ))
   val sinkToActor = Sink.actorRef[Int](sinkActor, onCompleteMessage = "complete")
   val runnable1 = Source(1 to 3) to sinkToActor
-  runnable1.run() // sinkActor received: 1, 2, 3, complete
+  val matValue4: NotUsed = runnable1.run() // sinkActor received: 1, 2, 3, complete
 
   // 6) Flow
   val invertFlow = Flow[Int].map(element => element * -1)
   val runnable2 = Source(1 to 3) via invertFlow to Sink.foreach(element => println(element))
   // source.via([Flow]): the via() method connects a Source with a Flow, resulting a new Source
-  runnable2.run() // -1 -2 -3
+  val matValue5: NotUsed = runnable2.run() // -1 -2 -3
 
   // 7) materialized value:
   //    after running (materializing) the RunnableGraph[T] we get back the materialized value of type T
@@ -101,10 +110,20 @@ object Quickttart extends App {
   val sumSink: Sink[Int, Future[Int]] = Sink.fold[Int, Int](0)(_ + _)
   val runnable3: RunnableGraph[Future[Int]] = Source(1 to 10).toMat(sumSink)(Keep.right) // we are interested in the materialized value of sink (not source)
   // deafult is Keep.left: i.e. val runnable3: RunnableGraph[NotUsed] = Source(1 to 10).to(sumSink)
-  val sumFuture: Future[Int] = runnable3.run() // materialize the stream, resulting in the materialized value of sink
-  println(Await.result(sumFuture, 1.seconds))  // 1 + 2 + .... + 10 = 55
+  val matValue6: Future[Int] = runnable3.run() // materialize the stream, resulting in the materialized value of sink
+  println(Await.result(matValue6, 1.seconds))  // 1 + 2 + .... + 10 = 55
   // a stream can expose multiple materialized values, but it is quite common to be interested in:
   // i) only the value of the Source in the stream: ex. NotUsed or
   //ii) only the value of the Sink in the stream:   ex. Future[Done], Future[Int], etc.
+
+  // a stream can be materialized multiple times, which are new for each such materialization
+  val matValue7: Future[Int] = runnable3.run() // materialize the stream, resulting in the materialized value of sink
+  println(Await.result(matValue7, 1.seconds))  // 1 + 2 + .... + 10 = 55
+  // note: matValue6 and matValue7 are different futures
+
+  // 8) other Source methods
+  val source1: Source[String, NotUsed] = Source.single("single value")
+  val source2: Source[String, NotUsed] = Source.fromFuture(Future.successful("success value")) // create a source from a Future
+
   system.terminate()
 }
