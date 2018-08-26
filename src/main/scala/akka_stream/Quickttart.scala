@@ -59,14 +59,14 @@ object Quickttart extends App {
 
   // 3) FileIO.toPath([Path]):
   //      returns: Sink[ByteString, Future[IOResult]], note: Sink[-In, +Mat] where In: ByteString, Mat: Future[IOResult]]
-  val result: Future[IOResult] = // IOResult is what IO operations returns to tell you how many elements were consumed and whether the stream terminated normally
+  val matValue1: Future[IOResult] = // IOResult is what IO operations returns to tell you how many elements were consumed and whether the stream terminated normally
     factorials
       .map(num => ByteString(s"$num\n")) // transform the resulting series of numbers into a stream of ByteString objects
       .runWith(FileIO.toPath(Paths.get("factorials.txt"))) // the stream is then run by attaching a file (Sink) as the receiver of the data
 
   // example3:
   val tweets: Source[String, NotUsed] = Source("tweet1" :: "tweet2" :: Nil)
-  tweets
+  val matValue2: Future[Done] = tweets
     .map(_.toUpperCase)     // Get all sets of tweets ...
     .reduce(_ ++ ", " ++ _) // reduce them to a single set
     .runWith(Sink.foreach(println)) // TWEET1, TWEET2: Attach the Flow to a Sink that will finally print the tweets
