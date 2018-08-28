@@ -18,12 +18,12 @@ object AkkaSourceQueue extends App {
   val sourceQueue: SourceQueueWithComplete[Int] = Source.queue[Int](5, OverflowStrategy.backpressure) // Source[Int, SourceQueueWithComplete[Int]]
     .map(x => x * x)                                                        // Source[Int, SourceQueueWithComplete[Int]]
     .toMat(Sink.foreach(x => println(s"completed $x")))(Keep.left)          // RunnableGraph[SourceQueueWithComplete[Int]]
-    .run()                                                                  // SourceQueueWithComplete[Int]
+    .run()                                                                  // SourceQueueWithComplete[Int]: materialize the graph and run it, the return value is a SourceQueue
 
   implicit val dispatcher = system.dispatcher
   // 1) source.mapAsync():
   //    transform this stream by applying the given function to each of the element as they pass through this processing step
-  val source: Source[Unit, NotUsed] = Source(1 to 10).mapAsync(1) {
+  val source: Source[Unit, NotUsed] = Source(1 to 10).mapAsync(1) { // create another source to feed elements into the queue
     element => { // the mapping function should return a Future
       sourceQueue.offer(element).map {
         case QueueOfferResult.Enqueued    => println(s"enqueued $element")
