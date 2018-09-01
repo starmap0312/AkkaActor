@@ -5,8 +5,7 @@ import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.stream.scaladsl.{Keep, Sink, Source, SourceQueueWithComplete}
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 // Source.queue:
