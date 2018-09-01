@@ -7,6 +7,7 @@ import akka.stream.scaladsl.{Keep, Sink, Source, SourceQueueWithComplete}
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 // Source.queue:
 // materialize a SourceQueue onto which elements can be pushed for emitting from the source
@@ -33,7 +34,9 @@ object AkkaSourceQueue extends App {
     }
   }
   val matValue: Future[Done] = source.runWith(Sink.ignore) // runWith(): connecting this Source to a Sink and run it
-  Await.result(matValue, 3.seconds)
 
-  system.terminate()
+  matValue onComplete {
+    case Success(Done) => system.terminate()
+    case Failure(ex) => system.terminate()
+  }
 }
