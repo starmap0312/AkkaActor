@@ -4,7 +4,6 @@ import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.stream.scaladsl.{Keep, Sink, Source, SourceQueueWithComplete}
-import akka_stream.Quickttart.system
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._

@@ -10,6 +10,7 @@ import akka.util.ByteString
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 // https://jobs.zalando.com/tech/blog/about-akka-streams/?gh_src=4n3gxh1
 
@@ -31,6 +32,7 @@ import scala.concurrent.duration._
 
 object Quickttart extends App {
   implicit val system = ActorSystem("QuickStart")
+  implicit val dispatcher = system.dispatcher
   implicit val materializer = ActorMaterializer() // an evaluation engine for the streams (note: akka streams are evaluated on top of actors)
   // "implicit" makes compiler be able to inject these dependencies automatically whenever they are needed
 
@@ -75,6 +77,10 @@ object Quickttart extends App {
     factorials
       .map(num => ByteString(s"$num\n")) // transform the resulting series of numbers into a stream of ByteString objects
       .runWith(FileIO.toPath(Paths.get("factorials.txt"))) // the stream is then run by attaching a file (Sink) as the receiver of the data
+  matValue3 onComplete { // we can think of materialized values as of an external handler to a materialized stream
+    case Success(result) => println("successful IOResult") // successful IOResult
+    case Failure(ex) => println("failed with exception")
+  }
 
   // example3:
   val tweets: Source[String, NotUsed] = Source("tweet1" :: "tweet2" :: Nil)
