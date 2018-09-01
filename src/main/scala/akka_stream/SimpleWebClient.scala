@@ -9,10 +9,10 @@ import scala.io.StdIn
 
 // write a simple socket client with Akka Streams
 object SimpleWebClient extends App {
-  implicit val system = ActorSystem("SimpleWebServer")
+  implicit val system = ActorSystem("SimpleWebClient")
   implicit val materializer = ActorMaterializer()
 
-  val outgoingConnectionFlow = Tcp().outgoingConnection("localhost", 9000)
+  val outgoingConnectionFlow = Tcp().outgoingConnection("127.0.0.1", 9000)
   val flow = Flow[ByteString]
     .via(
       Framing.delimiter(
