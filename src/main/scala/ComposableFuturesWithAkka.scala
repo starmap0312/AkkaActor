@@ -1,5 +1,3 @@
-package akka_http
-
 // https://www.youtube.com/watch?v=VCattsfHR4o
 // 1) Threads
 //    independent, heap-sharing execution context, scheduled by operating system
