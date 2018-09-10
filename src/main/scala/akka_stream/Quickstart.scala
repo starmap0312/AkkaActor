@@ -150,8 +150,10 @@ object Quickstart extends App {
     zipWith(Source(0 to 3))((num, idx) => s"${idx}! = ${num}").
     throttle(1, 1.seconds, 1, ThrottleMode.Shaping). // slow down the stream to 1 element per second
     runForeach(println) // 0! = 1, 1! = 1, 2! = 2, 3! = 6
-  // ThrottleMode.Shaping: makes pauses before emitting messages to meet throttle rate
-  // ThrottleMode.Enforcing: fails with exception when upstream is faster than throttle rate
+  // throttle(): signal to all its upstream sources of data that it can only accept elements at a certain rate
+  //   Akka Streams implicitly implement pervasive flow control, all operators respect back-pressure
+  // 9.1) ThrottleMode.Shaping: makes pauses before emitting messages to meet throttle rate
+  // 9.2) ThrottleMode.Enforcing: fails with exception when upstream is faster than throttle rate
   matValue10 onComplete {
     case Success(Done) => system.terminate()
   }
