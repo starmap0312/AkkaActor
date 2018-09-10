@@ -30,7 +30,7 @@ import scala.util.{Failure, Success}
 //    in Akka Streams, processing entities have a "bounded" mailbox (never dropping)
 //      it uses back-pressure to control the flow instead
 
-object Quickttart extends App {
+object Quickstart extends App {
   implicit val system = ActorSystem("QuickStart")
   implicit val dispatcher = system.dispatcher
   implicit val materializer = ActorMaterializer() // an evaluation engine for the streams (note: akka streams are evaluated on top of actors)
@@ -57,6 +57,9 @@ object Quickttart extends App {
   // 1) source.runForeach([func]) = runWith(Sink.foreach([func]))
   //    running this Source with a foreach procedure
   val matValue1: Future[Done] = source.runForeach(num => println(num))(materializer)
+  //matValue1 onComplete { // materialized value can be seen as external handler to a materialized stream
+  //  case _ => system.terminate()
+  //}
   // 2) runWith():
   //    connecting this Source to a Sink and run it
   val matValue2: Future[Done] = source.runWith(Sink.foreach(num => println(num)))
@@ -71,8 +74,8 @@ object Quickttart extends App {
   //   returns: type Repr[BigInt] = Flow[In, BigInt, Mat]
 
 
-  // 3) FileIO.toPath([Path]):
-  //      returns: Sink[ByteString, Future[IOResult]], note: Sink[-In, +Mat] where In: ByteString, Mat: Future[IOResult]]
+  // 3) FileIO.toPath([Path]): Sink[ByteString, Future[IOResult]]
+  // 3.1) FileIO.toPath([Path]): returns: Sink[ByteString, Future[IOResult]], note: Sink[-In, +Mat] where In: ByteString, Mat: Future[IOResult]]
   val matValue3: Future[IOResult] = // IOResult is what IO operations returns to tell you how many elements were consumed and whether the stream terminated normally
     factorials
       .map(num => ByteString(s"$num\n")) // transform the resulting series of numbers into a stream of ByteString objects
@@ -81,6 +84,12 @@ object Quickttart extends App {
     case Success(result) => println("successful IOResult") // successful IOResult
     case Failure(ex) => println("failed with exception")
   }
+  // 3.2) Flow.toMat(): create reusable Sink
+  def fileSink(filename: String): Sink[String, Future[IOResult]] =
+    Flow[String].
+      map(s => ByteString(s + "\n")).
+      toMat(FileIO.toPath(Paths.get(filename)))(Keep.right)
+  factorials.map(_.toString).runWith(fileSink("factorials2.txt"))
 
   // example3:
   val tweets: Source[String, NotUsed] = Source("tweet1" :: "tweet2" :: Nil)
