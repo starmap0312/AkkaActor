@@ -4,7 +4,7 @@ import java.nio.file.Paths
 
 import akka.{Done, NotUsed}
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import akka.stream.{ActorMaterializer, IOResult}
+import akka.stream.{ActorMaterializer, IOResult, ThrottleMode}
 import akka.stream.scaladsl.{FileIO, Flow, FlowOps, Keep, RunnableGraph, Sink, Source}
 import akka.util.ByteString
 
@@ -84,7 +84,7 @@ object Quickstart extends App {
     case Success(result) => println("successful IOResult") // successful IOResult
     case Failure(ex) => println("failed with exception")
   }
-  // 3.2) Flow.toMat(): create reusable Sink
+  // 3.2) Flow.toMat([Sink]): create a materialized reusable Sink
   def fileSink(filename: String): Sink[String, Future[IOResult]] =
     Flow[String].
       map(s => ByteString(s + "\n")).
@@ -144,5 +144,15 @@ object Quickstart extends App {
   val source1: Source[String, NotUsed] = Source.single("single value")
   val source2: Source[String, NotUsed] = Source.fromFuture(Future.successful("success value")) // create a source from a Future
 
-  system.terminate()
+  // 9) time-based processing
+  // Source.zipWith([Source])((e1, e2) => out): combine two Sources & map them to a Function2
+  val matValue10: Future[Done] = factorials.
+    zipWith(Source(0 to 3))((num, idx) => s"${idx}! = ${num}").
+    throttle(1, 1.seconds, 1, ThrottleMode.Shaping). // slow down the stream to 1 element per second
+    runForeach(println) // 0! = 1, 1! = 1, 2! = 2, 3! = 6
+  // ThrottleMode.Shaping: makes pauses before emitting messages to meet throttle rate
+  // ThrottleMode.Enforcing: fails with exception when upstream is faster than throttle rate
+  matValue10 onComplete {
+    case Success(Done) => system.terminate()
+  }
 }
