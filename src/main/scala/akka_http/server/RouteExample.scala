@@ -20,10 +20,10 @@ object RouteExample extends App {
   val route: Route =
     // Directives: ex. get, path for matching (filtering) requests
     get {                       // i.e. HttpMethods.GET
-      // 1) curl http://localhost:9000/abc
-      path("abc") {        // i.e. Uri.Path("/abc")
+      // 1) curl http://localhost:9000/abc/10
+      path("abc" / IntNumber) {        // i.e. Uri.Path("/abc")
         // leaf Directive: ex. complete, redirect, for specifying responses
-        complete("Hello World") // i.e. Future.successful(HttpResponse(entity = "Hello World"))
+        num => complete(s"Hello World, with num=${num}") // i.e. Future.successful(HttpResponse(entity = "Hello World"))
       } ~ // alternatively, take another path
       // 2) curl http://localhost:9000/another?name=john\&age=10
       path("another") {
@@ -39,6 +39,10 @@ object RouteExample extends App {
             complete(s"Only age ${ageInTenYears} in ten years.")
         }
       }
+    } ~
+    // curl -X PUT http://localhost:9000/putty
+    (put & path("putty")) {
+      complete("put request")
     }
 
   Http().bindAndHandleAsync(Route.asyncHandler(route), "localhost", 9000).
