@@ -16,12 +16,26 @@ object RouteExample extends App {
   import system.dispatcher
   implicit val materializer = ActorMaterializer()
 
+  // Routing
   val route: Route =
+    // Directives: ex. get, path for matching (filtering) requests
     get {                       // i.e. HttpMethods.GET
+      // 1) curl http://localhost:9000/abc
       path("abc") {        // i.e. Uri.Path("/abc")
+        // leaf Directive: ex. complete, redirect, for specifying responses
         complete("Hello World") // i.e. Future.successful(HttpResponse(entity = "Hello World"))
+      } ~
+      // 2) curl http://localhost:9000/another?name=john\&age=10 --> both parameters are required
+      path("another") {
+        // extract data from request: ex. parameter
+        parameter("name", "age".as[Int]) {
+          (name, age) =>
+            val ageInTenYears = age + 10
+            complete(s"Hello ${name}. You will be of age ${ageInTenYears} in ten years.")
+        }
       }
     }
+
   Http().bindAndHandleAsync(Route.asyncHandler(route), "localhost", 9000).
     onComplete {
       case Success(_) =>
