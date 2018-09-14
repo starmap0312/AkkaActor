@@ -10,6 +10,7 @@ import scala.io.StdIn
 import scala.util.{Failure, Success}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.model.{DateTime, headers}
 
 object RouteExample extends App {
   implicit val system = ActorSystem()
@@ -33,14 +34,19 @@ object RouteExample extends App {
             val ageInTenYears = age.map(_ + 10).getOrElse(0)
             complete(s"Hello ${name}. You will be of age ${ageInTenYears} in ten years.")
         } ~ // alternatively, take only parameter age
+        // 3) curl http://localhost:9000/another?age=10 -v
         parameter("age".as[Int]) {
           (age: Int) =>
             val ageInTenYears = age + 10
-            complete(s"Only age ${ageInTenYears} in ten years.")
+            // Directive that changes HttpResponse, ex. add header
+            //   response header: "Last-Modified: Fri, 14 Sep 2018 11:44:00 GMT"
+            respondWithHeader(headers.`Last-Modified`(DateTime.now)) {
+              complete(s"Only age ${ageInTenYears} in ten years.")
+            }
         }
       }
     } ~
-    // curl -X PUT http://localhost:9000/putty
+    // 4) curl -X PUT http://localhost:9000/putty
     (put & path("putty")) {
       complete("put request")
     }
