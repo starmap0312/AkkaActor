@@ -57,7 +57,6 @@ object InteractWithActorTest {
         } ~
           get {
             implicit val timeout: Timeout = 5.seconds
-
             val bids: Future[Bids] = (auction ? GetBids).mapTo[Bids] // ask actor: query actor for the current auction state
             complete(bids)
           }
