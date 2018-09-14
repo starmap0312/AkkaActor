@@ -24,14 +24,19 @@ object RouteExample extends App {
       path("abc") {        // i.e. Uri.Path("/abc")
         // leaf Directive: ex. complete, redirect, for specifying responses
         complete("Hello World") // i.e. Future.successful(HttpResponse(entity = "Hello World"))
-      } ~
-      // 2) curl http://localhost:9000/another?name=john\&age=10 --> both parameters are required
+      } ~ // alternatively, take another path
+      // 2) curl http://localhost:9000/another?name=john\&age=10
       path("another") {
         // extract data from request: ex. parameter
-        parameter("name", "age".as[Int]) {
-          (name, age) =>
-            val ageInTenYears = age + 10
+        parameter("name", "age".as[Int].?) { // parameter name is required, and age is optional
+          (name: String, age: Option[Int]) =>
+            val ageInTenYears = age.map(_ + 10).getOrElse(0)
             complete(s"Hello ${name}. You will be of age ${ageInTenYears} in ten years.")
+        } ~ // alternatively, take only parameter age
+        parameter("age".as[Int]) {
+          (age: Int) =>
+            val ageInTenYears = age + 10
+            complete(s"Only age ${ageInTenYears} in ten years.")
         }
       }
     }
