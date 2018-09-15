@@ -1,12 +1,8 @@
 package akka_http.server
 
-package akka_http.server
-
-package akka_http.server
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.stream.ActorMaterializer
+import akka.stream.{ActorMaterializer, ThrottleMode}
 
 import scala.io.StdIn
 import scala.util.{Failure, Success}
@@ -15,6 +11,8 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.model._
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+
+import scala.concurrent.duration._
 
 object HttpEntityExample extends App {
   implicit val system = ActorSystem()
@@ -78,10 +76,12 @@ object HttpEntityExample extends App {
             // case class ClosedDelimited: the model for the entity of an HTTP response that is terminated by the server closing the connection.
             //   The content-length of such responses is unknown at the time the response headers have been received.
             HttpEntity.CloseDelimited(
+              // response header: contains "Connection: close" to close the connetion
               ContentTypes.`text/plain(UTF-8)`,
               // Content: this is supplied as a Stream
-              //Source.single(ByteString("Hello")) ++ Source.single(ByteString(" World"))
-              Source(1 to 1000).map(num => ByteString(num.toString))
+              Source(1 to 5).
+                throttle(1, 1.seconds, 1, ThrottleMode.Shaping). // slow down the stream to 1 element per second
+                map(num => ByteString(num.toString))
             )
           )
         }

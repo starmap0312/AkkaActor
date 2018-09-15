@@ -1,7 +1,5 @@
 package akka_http.server
 
-package akka_http.server
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
