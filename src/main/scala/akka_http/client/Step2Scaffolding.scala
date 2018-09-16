@@ -11,12 +11,10 @@ import scala.concurrent.Future
 object Step2Scaffolding extends Scaffolding with App {
 
   def sourceFuture: Future[Source[String, Any]] = {
-    val responseFuture: Future[HttpResponse] = Http().singleRequest(request)
-    val future: Future[Source[String, Any]] = responseFuture.map { response =>
+    Http().singleRequest(request).map { response =>
       response.entity.dataBytes. // Source[ByteString, Any]
         map(_.utf8String) // Source[String, Any]
     }
-    future
   }
 
   runWebService {
