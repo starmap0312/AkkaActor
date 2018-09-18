@@ -3,7 +3,7 @@ package akka_http.client
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.coding.Gzip
+//import akka.http.scaladsl.coding.Gzip
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.scaladsl.Source
 
