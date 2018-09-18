@@ -53,6 +53,9 @@ object CrawlerExample extends App {
         response => {
           if (response.status.intValue() < 400) {
             response.entity.toStrict(3 seconds).map(_.data.decodeString("UTF-8"))
+            // ResponseEntity.toStrict([timeout]):
+            //   consume the entire entity as Strict entity (i.e. completely loaded into memory)
+            //   used to eagerly consume the entity and make it available in memory:
           } else {
             throw new RuntimeException("Bad status")
           }
