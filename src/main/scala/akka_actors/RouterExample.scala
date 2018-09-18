@@ -17,17 +17,19 @@ object RouterExample extends App {
     import Master._
 
     var router = {
+      // create routee actors
       val routees = Vector.fill(5) {
         val routee = context.actorOf(Props[Worker])
         context watch routee
         ActorRefRoutee(routee)
       }
+      // create a Router with routing logic & routees specified
       Router(RoundRobinRoutingLogic(), routees)
     }
 
     def receive = {
       case Work =>
-        router.route(Work, sender())
+        router.route(Work, sender()) // send message to routee actors through a Router
       case Terminated(routee) =>
         router = router.removeRoutee(routee)
         val newRoutee = context.actorOf(Props[Worker])
