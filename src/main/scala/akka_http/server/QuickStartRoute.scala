@@ -10,7 +10,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.model.{DateTime, headers}
 
-object RouteExample extends App {
+object QuickStartRoute extends App {
   implicit val system = ActorSystem()
   import system.dispatcher
   implicit val materializer = ActorMaterializer()
@@ -49,6 +49,8 @@ object RouteExample extends App {
       complete("put request")
     }
 
+  // Route.asyncHandler([route]):
+  //   convert a Route to a handler, which is a Function of HttpRequest => Future[HttpResponse]
   Http().bindAndHandleAsync(Route.asyncHandler(route), "localhost", 9000).
     onComplete {
       case Success(_) =>

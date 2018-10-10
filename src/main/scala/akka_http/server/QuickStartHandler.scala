@@ -9,7 +9,7 @@ import scala.concurrent.Future
 import scala.io.StdIn
 import scala.util.{Failure, Success}
 
-object HelloWorld extends App {
+object QuickStartHandler extends App {
   implicit val system = ActorSystem()
   import system.dispatcher
   implicit val materializer = ActorMaterializer()
