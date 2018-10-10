@@ -26,6 +26,8 @@ object HelloWorld extends App {
         //    internal server error, sending 500 response: i.e. HTTP/1.1 500 Internal Server Error
         //Future.failed(new Exception("an exception occurs"))
     }
+    // in case of requesting other uri path, Failure(scala.MatchError) is returned
+    //   so the client will receive HTTP/1.1 500 Internal Server Error
   }
 
   // 1) Http().bindAndHandleAsync([handler], [interface], [port]):
