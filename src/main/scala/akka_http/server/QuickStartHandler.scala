@@ -15,7 +15,9 @@ object QuickStartHandler extends App {
   implicit val materializer = ActorMaterializer()
 
   def handler(request: HttpRequest): Future[HttpResponse] = {
-    // we can handle the request asynchronously here, i.e. we don't need to return HttpResponse immediately
+    // 1) handler:
+    //    we can handle the request asynchronously here, i.e. we don't need to return HttpResponse immediately
+    //    however, pattern matching is hard to abstract and too verbose to write, so use Route and Directives instead
     request match {
       // handle requests that match the following path, i.e. curl http://localhost:9000/abc
       case HttpRequest(HttpMethods.GET, Uri.Path("/abc"), _, _, _) =>

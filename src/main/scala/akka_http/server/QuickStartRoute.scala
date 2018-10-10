@@ -17,34 +17,37 @@ object QuickStartRoute extends App {
 
   // Routing
   val route: Route =
-    // Directives: ex. get, path for matching (filtering) requests
+    // 1) get, path: Directives for matching (filtering) requests
     get {                       // i.e. HttpMethods.GET
-      // 1) curl http://localhost:9000/abc/10
+      // i) curl http://localhost:9000/abc/10
       path("abc" / IntNumber) {        // i.e. Uri.Path("/abc")
         // leaf Directive: ex. complete, redirect, for specifying responses
         num => complete(s"Hello World, with num=${num}") // i.e. Future.successful(HttpResponse(entity = "Hello World"))
       } ~ // alternatively, take another path
-      // 2) curl http://localhost:9000/another?name=john\&age=10
+      // ii) curl http://localhost:9000/another?name=john\&age=10
       path("another") {
         // extract data from request: ex. parameter
+    // 2) parameter: extract data from the request
         parameter("name", "age".as[Int].?) { // parameter name is required, and age is optional
           (name: String, age: Option[Int]) =>
             val ageInTenYears = age.map(_ + 10).getOrElse(0)
+    // 3) complete, redirect: leaf Routes for specifying response behavior
             complete(s"Hello ${name}. You will be of age ${ageInTenYears} in ten years.")
         } ~ // alternatively, take only parameter age
-        // 3) curl http://localhost:9000/another?age=10 -v
+        // iii) curl http://localhost:9000/another?age=10 -v
         parameter("age".as[Int]) {
           (age: Int) =>
             val ageInTenYears = age + 10
             // Directive that changes HttpResponse, ex. add header
             //   response header: "Last-Modified: Fri, 14 Sep 2018 11:44:00 GMT"
+    // 4) respondWithHeader: Directives that can also change the response
             respondWithHeader(headers.`Last-Modified`(DateTime.now)) {
               complete(s"Only age ${ageInTenYears} in ten years.")
             }
         }
       }
     } ~
-    // 4) curl -X PUT http://localhost:9000/putty
+    // iv) curl -X PUT http://localhost:9000/putty
     (put & path("putty")) {
       complete("put request")
     }
