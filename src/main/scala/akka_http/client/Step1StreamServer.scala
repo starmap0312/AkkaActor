@@ -35,7 +35,7 @@ object Step1StreamServer extends App {
           HttpResponse(
             entity = HttpEntity.Chunked.fromData(
               ContentTypes.`text/plain(UTF-8)`,
-              source.map(str => ByteString(str, "UTF8"))
+              source.map(line => ByteString(line + "\n", "UTF8"))
             )
           )
         }
