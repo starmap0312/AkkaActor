@@ -35,8 +35,8 @@ object Step2Scaffolding extends Scaffolding with App {
   }
 
   def printFlow: Flow[String, String, NotUsed] = Flow[String].map {
-    str =>
-      println(str.slice(1, 2) + "...") // a Flow that just prints part of the string
-      str
+    line =>
+      println(line.slice(1, 80) + "...") // a Flow that just prints part of the string
+      line
   }
 }
