@@ -23,12 +23,12 @@ object QuickStartRoute extends App {
       path("abc" / IntNumber) {        // i.e. Uri.Path("/abc")
         // leaf Directive: ex. complete, redirect, for specifying responses
         num => complete(s"Hello World, with num=${num}") // i.e. Future.successful(HttpResponse(entity = "Hello World"))
-      } ~ // alternatively, take another path
+      } ~ // alternatively, specify another path
       // ii) curl http://localhost:9000/another?name=john\&age=10
       path("another") {
         // extract data from request: ex. parameter
     // 2) parameter: extract data from the request
-        parameter("name", "age".as[Int].?) { // parameter name is required, and age is optional
+        parameter("name", "age".as[Int].?) { // parameter name is "required", and age is "optional"
           (name: String, age: Option[Int]) =>
             val ageInTenYears = age.map(_ + 10).getOrElse(0)
     // 3) complete, redirect: leaf Routes for specifying response behavior
