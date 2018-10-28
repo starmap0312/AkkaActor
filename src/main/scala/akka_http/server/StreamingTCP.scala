@@ -4,17 +4,16 @@ import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Tcp.ServerBinding
-import akka.stream.scaladsl.{Flow, Framing, Sink, Source, Tcp}
+import akka.stream.scaladsl.{Flow, Framing, Source, Tcp}
 import akka.util.ByteString
 
 import scala.concurrent.Future
 import scala.io.StdIn
-import scala.util.Success
 
 object StreamingTCP extends App {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
-  import system.dispatcher
+  //import system.dispatcher
 
   val connections: Source[Tcp.IncomingConnection, Future[ServerBinding]] =
     Tcp().bind("127.0.0.1", 9000)

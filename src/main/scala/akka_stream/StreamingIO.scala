@@ -14,7 +14,7 @@ import scala.io.StdIn
 object StreamingIO extends App {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
-  import system.dispatcher
+  //import system.dispatcher
 
   // simple Sources and Sinks that work with ByteString instances to perform IO operations on files
   val path: Path = Paths.get("src/main/resources/example.csv") // file path relative to project folder
