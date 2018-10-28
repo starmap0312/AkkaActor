@@ -3,6 +3,7 @@ package akka_stream
 import java.nio.file.{Path, Paths}
 
 import akka.actor.ActorSystem
+import akka.stream.scaladsl.Framing
 import akka.stream.{ActorMaterializer, IOResult}
 import akka.stream.scaladsl.{FileIO, RunnableGraph, Sink, Source}
 import akka.util.ByteString
@@ -19,7 +20,10 @@ object StreamingIO extends App {
   val path: Path = Paths.get("src/main/resources/example.csv") // file path relative to project folder
   val fileSource: Source[ByteString, Future[IOResult]] = FileIO.fromPath(path)
   val stream: RunnableGraph[Future[IOResult]] = fileSource.
-    to(Sink.ignore)
+    via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true)).
+    map(_.utf8String).
+    map(_ + "!!!\n").
+    to(Sink.foreach(print))
   val matValue: Future[IOResult] = stream.run() // the stream is materialized as IOResult
   StdIn.readLine()
   system.terminate()
