@@ -28,5 +28,4 @@ object StreamingIO extends App {
   val matValue: Future[IOResult] = stream.run() // the stream is materialized as IOResult
   StdIn.readLine()
   system.terminate()
-
 }
