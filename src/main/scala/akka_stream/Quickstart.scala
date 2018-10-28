@@ -70,9 +70,9 @@ object Quickstart extends App {
   //        1 1 2 6 24 120 ... 3628800
   //   note: nothing is actually computed yet, this is a description of what we want to do once we run the stream
   val factorials: Source[BigInt, NotUsed] = source.scan(BigInt(1))((acc, next) => acc * next)
+  // scan(): just like foldLeft() of collection
   // def scan(zero: BigInt)(func: (BigInt, Out) => BigInt): Repr[BigInt]
   //   returns: type Repr[BigInt] = Flow[In, BigInt, Mat]
-
 
   // 3) FileIO.toPath([Path]): Sink[ByteString, Future[IOResult]]
   // 3.1) FileIO.toPath([Path]): returns: Sink[ByteString, Future[IOResult]], note: Sink[-In, +Mat] where In: ByteString, Mat: Future[IOResult]]

@@ -16,6 +16,7 @@ object StreamingIO extends App {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   //import system.dispatcher
+
   // 1) FileIO.fromPath([Path]): returns Source[ByteString, Future[IOResult]]
   //    FileIO.toPath([Path]):   returns Sink[ByteString, Future[IOResult]]
   val path: Path = Paths.get("src/main/resources/example.csv") // file path relative to project folder
@@ -24,7 +25,8 @@ object StreamingIO extends App {
     via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true)).
     map(_.utf8String).
     map(_ + "!!!\n").
-    to(Sink.foreach(print))
+    map(ByteString(_)).
+    to(FileIO.toPath(Paths.get("example.out.csv")))
   val matValue: Future[IOResult] = stream.run() // the stream is materialized as IOResult
   StdIn.readLine()
   system.terminate()
