@@ -11,12 +11,13 @@ import akka.util.ByteString
 import scala.concurrent.Future
 import scala.io.StdIn
 
+// simple Sources and Sinks that work with ByteString instances to perform IO operations on files
 object StreamingIO extends App {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   //import system.dispatcher
-
-  // simple Sources and Sinks that work with ByteString instances to perform IO operations on files
+  // 1) FileIO.fromPath([Path]): returns Source[ByteString, Future[IOResult]]
+  //    FileIO.toPath([Path]):   returns Sink[ByteString, Future[IOResult]]
   val path: Path = Paths.get("src/main/resources/example.csv") // file path relative to project folder
   val fileSource: Source[ByteString, Future[IOResult]] = FileIO.fromPath(path)
   val stream: RunnableGraph[Future[IOResult]] = fileSource.
