@@ -1,8 +1,9 @@
 package akka_http.client
 
-import akka.actor.ActorSystem        // the runtime for everything related to akka
-import akka.stream.ActorMaterializer // the runtime for akka stream, on which akka-http is built
-import akka.http.scaladsl.Http // the entry point for akka-http (if writing java, use java dsl instead)
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpMethods // the entry point for akka-http (if writing java, use java dsl instead)
 //import akka.http.scaladsl.coding.Gzip
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.scaladsl.Source
@@ -27,7 +28,7 @@ object Step0SimpleClient extends App {
   implicit val materializer = ActorMaterializer()
   import system.dispatcher
 
-  val request: HttpRequest = HttpRequest(uri = "http://localhost:9000/abc")
+  val request: HttpRequest = HttpRequest(method = HttpMethods.GET, uri = "http://localhost:9000/abc")
   val responseFuture: Future[HttpResponse] = Http().singleRequest(request)
   val sourceFuture: Future[Source[String, Any]] = responseFuture.map { response =>
     response.entity.dataBytes. // Source[ByteString, Any]
