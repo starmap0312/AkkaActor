@@ -23,10 +23,10 @@ object StreamingIO extends App {
   val fileSource: Source[ByteString, Future[IOResult]] = FileIO.fromPath(path)
   val stream: RunnableGraph[Future[IOResult]] = fileSource.
     via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true)).
-    map(_.utf8String).
-    map(_ + "!!!\n").
+    map(_.utf8String). // map the ByteString of each-line to utf-8 String
+    map(_ + "!!!\n").  // append line break to the utf-8 String of each-line
     map(ByteString(_)).
-    to(FileIO.toPath(Paths.get("example.out.csv")))
+    to(FileIO.toPath(Paths.get("example.out.csv"))) // 140.112.1.1,A1!!!\n ....
   val matValue: Future[IOResult] = stream.run() // the stream is materialized as IOResult
   StdIn.readLine()
   system.terminate()

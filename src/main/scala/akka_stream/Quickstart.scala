@@ -152,8 +152,8 @@ object Quickstart extends App {
     runForeach(println) // 0! = 1, 1! = 1, 2! = 2, 3! = 6
   // throttle(): signal to all its upstream sources of data that it can only accept elements at a certain rate
   //   Akka Streams implicitly implement pervasive flow control, all operators respect back-pressure
-  // 9.1) ThrottleMode.Shaping: makes pauses before emitting messages to meet throttle rate
-  // 9.2) ThrottleMode.Enforcing: fails with exception when upstream is faster than throttle rate
+  // 9.1) ThrottleMode.Shaping: make pauses before emitting messages to meet throttle rate
+  // 9.2) ThrottleMode.Enforcing: fail with exception when upstream is faster than throttle rate
   matValue10 onComplete {
     case Success(Done) => system.terminate()
   }

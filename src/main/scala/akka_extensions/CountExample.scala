@@ -1,21 +1,19 @@
 package akka_extensions
 
 import java.util.concurrent.atomic.AtomicLong
-
 import akka.actor.Extension
+import akka.actor.ActorSystem
+import akka.actor.ExtensionId
+import akka.actor.ExtensionIdProvider
+import akka.actor.ExtendedActorSystem
 
 class CountExtensionImpl extends Extension {
-  //Since this Extension is a shared instance per ActorSystem we need to be threadsafe
+  //Since this Extension is a shared instance per ActorSystem we need to be thread-safe
   private val counter = new AtomicLong(0)
 
   //This is the operation this Extension provides
   def increment() = counter.incrementAndGet()
 }
-
-import akka.actor.ActorSystem
-import akka.actor.ExtensionId
-import akka.actor.ExtensionIdProvider
-import akka.actor.ExtendedActorSystem
 
 object CountExtension extends ExtensionId[CountExtensionImpl] with ExtensionIdProvider {
   //The lookup method is required by ExtensionIdProvider, so we return ourselves here, this allows us
