@@ -6,7 +6,6 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.scaladsl.{Flow, Framing, Source}
 import akka.util.ByteString
-
 import scala.concurrent.Future
 
 object Step2Scaffolding extends Scaffolding with App {
