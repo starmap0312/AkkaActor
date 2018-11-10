@@ -1,4 +1,4 @@
-package akka_http.client
+package akka_http.server
 
 import akka.NotUsed
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse}
@@ -6,10 +6,12 @@ import akka.http.scaladsl.server.Directives.{complete, get}
 import akka.stream.ThrottleMode
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import akka_http.client.Scaffolding
+
 import scala.concurrent.duration._
 import scala.util.Random
 
-object MockServer extends Scaffolding with App {
+object MockServerFromIterator extends Scaffolding with App {
 
   // 1) fromIterator: stream the values from an Iterator, requesting the next value when there is demand
   //     def fromIterator[T](f: () ⇒ Iterator[T]): Source[T, NotUsed]
@@ -31,6 +33,7 @@ object MockServer extends Scaffolding with App {
       throttle(1, 1.seconds, 1, ThrottleMode.Shaping)
       // slow down the stream to 1 element per second
 
+  implicit val port: Int = 9000
   runWebService {
     get {
         complete {
