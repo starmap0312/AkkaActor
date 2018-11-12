@@ -60,7 +60,7 @@ object Step4WebSocket extends Scaffolding with App {
           val outStream = source
             .map(ws.TextMessage(_))
           val flow = Flow.fromSinkAndSource(Sink.ignore, outStream)
-          handleWebSocketMessages(flow)
+          handleWebSocketMessages(flow) // returns a Route
         }
       }
     }
