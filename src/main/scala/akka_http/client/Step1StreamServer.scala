@@ -19,7 +19,7 @@ object Step1StreamServer extends App {
   import system.dispatcher
 
   def sourceFuture: Future[Source[String, Any]] = {
-    val request: HttpRequest = HttpRequest(uri = "http://localhost:9000/chunked")
+    val request: HttpRequest = HttpRequest(uri = "http://localhost:9000/")
     val responseFuture: Future[HttpResponse] = Http().singleRequest(request)
     val future: Future[Source[String, Any]] = responseFuture.map { response =>
       response.entity.dataBytes. // Source[ByteString, Any]
@@ -35,14 +35,18 @@ object Step1StreamServer extends App {
           HttpResponse(
             entity = HttpEntity.Chunked.fromData(
               ContentTypes.`text/plain(UTF-8)`,
-              source.map(line => ByteString(line + "\n", "UTF8"))
+              source.map(line => ByteString(line, "UTF8"))
             )
           )
         }
       }
     }
 
-  val bindingFuture: Future[Http.ServerBinding] = Http().bindAndHandle(route, "localhost", 9001)
+  val config = system.settings.config.getConfig("app")
+  val interface = config.getString("interface")
+  val port = config.getInt("port")
+
+  val bindingFuture: Future[Http.ServerBinding] = Http().bindAndHandle(route, interface, port)
   bindingFuture onComplete {
     case Success(binding) => println(s"Server is listening on port: ${binding.localAddress.getPort}")
     case Failure(ex) => println(s"Binding fails with error: ${ex.getMessage}")

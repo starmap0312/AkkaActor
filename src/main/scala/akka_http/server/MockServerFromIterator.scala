@@ -14,7 +14,7 @@ import scala.util.Random
 object MockServerFromIterator extends Scaffolding with App {
 
   // 1) fromIterator: stream the values from an Iterator, requesting the next value when there is demand
-  //     def fromIterator[T](f: () ⇒ Iterator[T]): Source[T, NotUsed]
+  //     def fromIterator[T](f: () => Iterator[T]): Source[T, NotUsed]
   val iterator: Iterator[String] = new Iterator[String] {
     val rand = new Random
     def hasNext = true

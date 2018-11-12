@@ -16,7 +16,10 @@ class Scaffolding {
   implicit val dispatcher = system.dispatcher
 
   def runWebService(route: Route)(implicit port: Int = 9000): Unit = {
-    val bindingFuture: Future[Http.ServerBinding] = Http().bindAndHandle(route, "localhost", port)
+    val config = system.settings.config.getConfig("app")
+    val interface = config.getString("interface")
+
+    val bindingFuture: Future[Http.ServerBinding] = Http().bindAndHandle(route, interface, port)
     // note: to enable remote access to your server, you need to bind your server to the external interface
     //       ex. to simply bind to all interfaces, you can set the host/IP to 0.0.0.0
     //       i.e. Http().bindAndHandle(route, "0.0.0.0", 9001)

@@ -28,7 +28,7 @@ object Step0SimpleClient extends App {
   implicit val materializer = ActorMaterializer()
   import system.dispatcher
 
-  val request: HttpRequest = HttpRequest(method = HttpMethods.GET, uri = "http://localhost:9000/abc")
+  val request: HttpRequest = HttpRequest(method = HttpMethods.GET, uri = "http://localhost:9000/")
   val responseFuture: Future[HttpResponse] = Http().singleRequest(request)
   val sourceFuture: Future[Source[String, Any]] = responseFuture.map { response =>
     response.entity.dataBytes. // Source[ByteString, Any]
@@ -37,12 +37,12 @@ object Step0SimpleClient extends App {
   }
   sourceFuture onComplete {
     case Success(source) =>
-      source.runForeach(println)
+      source.runForeach(print)
     case Failure(ex) =>
       println("we have failure")
       ex.printStackTrace()
       system.terminate()
   }
   StdIn.readLine()
-  //system.terminate()
+  system.terminate()
 }
