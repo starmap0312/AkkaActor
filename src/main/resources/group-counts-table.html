@@ -12,11 +12,11 @@
 <table></table><!-- starts with an empty table -->
 
 <script>
-    var liveData = new WebSocket("ws://localhost:9001/group-counts");
-    liveData.onopen = function(event) {
+    var liveData = new WebSocket("ws://localhost:9001/group-counts"); // create a websocket, with protocol ws://
+    liveData.onopen = function(event) {    // onopen: check if the connection is successful
         console.log("Connected!", event);
     };
-    liveData.onmessage = function(event) {
+    liveData.onmessage = function(event) { // onmessage: when receive a message, ex. json data
         var data = JSON.parse(event.data);
         //console.log(data);
         var content = $.map(data, function (count, type) {
