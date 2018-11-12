@@ -57,10 +57,7 @@ object Step4WebSocket extends Scaffolding with App {
       } ~
       path("group-counts") {
         onSuccess(sourceFuture) { source =>
-          //import spray.json._
-          //import spray.json.DefaultJsonProtocol._
           val outStream = source
-            //.map(_.toJson.prettyPrint)
             .map(ws.TextMessage(_))
           val flow = Flow.fromSinkAndSource(Sink.ignore, outStream)
           handleWebSocketMessages(flow)
