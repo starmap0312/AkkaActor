@@ -13,10 +13,10 @@
 
 <script>
     var liveData = new WebSocket("ws://localhost:9001/group-counts"); // create a websocket, with protocol ws://
-    liveData.onopen = function(event) {    // onopen: check if the connection is successful
+    liveData.onopen = function(event) {    // onopen: specify the callback function when the connection is established
         console.log("Connected!", event);
     };
-    liveData.onmessage = function(event) { // onmessage: when receive a message, ex. json data
+    liveData.onmessage = function(event) { // onmessage: specify the callback function when receiving server messages
         var data = JSON.parse(event.data);
         //console.log(data);
         var content = $.map(data, function (count, type) {
