@@ -18,15 +18,16 @@ case class Order(items: List[Item])
 // 1) define serialization/de-serialization of domain models in a trait
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   // this trait that takes care of implicit marshalling/un-marshalling between Json and model classes
-  // extends it wherever json (un)marshalling is needed
-  implicit val itemFormat: RootJsonFormat[Item] = jsonFormat2(Item)    // Json String <-> Item
-  implicit val orderFormat: RootJsonFormat[Order] = jsonFormat1(Order) // Json String <-> Order
+  // extends the trait wherever json (un)marshalling is needed (this makes implicit method defined in the scope)
+  implicit def itemFormat: RootJsonFormat[Item] = jsonFormat2(Item)    // Json String <-> Item
+  implicit def orderFormat: RootJsonFormat[Order] = jsonFormat1(Order) // Json String <-> Order
 }
 
 // 2) define domain models
 case class Item2(name: String, id: Long) // {name: "book", id: 42}
 // 2) define serialization/de-serialization of domain models in companion object
 object Item2 {
+  // compiler will try to find implicit conversion from Item2 to (Json) String in the companion object
   implicit def itemFormat: RootJsonFormat[Item2] = jsonFormat2(Item2.apply)    // Json String <-> Item
 }
 
