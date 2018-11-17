@@ -6,8 +6,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.stream.ActorMaterializer
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 import akka.http.scaladsl.server.Directives._
-//import spray.json.DefaultJsonProtocol.jsonFormat2
-import spray.json.DefaultJsonProtocol._
+import spray.json.DefaultJsonProtocol._ // this is required for implicit conversion defined in companion object
 
 import scala.io.StdIn
 
@@ -27,8 +26,13 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
 case class Item2(name: String, id: Long) // {name: "book", id: 42}
 // 2) define serialization/de-serialization of domain models in companion object
 object Item2 {
-  // compiler will try to find implicit conversion from Item2 to (Json) String in the companion object
+  // compiler will try to find implicit conversion from Item2 to String (or vice versa) in the companion object
   implicit def itemFormat: RootJsonFormat[Item2] = jsonFormat2(Item2.apply)    // Json String <-> Item
+}
+case class Order2(items: List[Item2])
+object Order2 {
+  // compiler will try to find implicit conversion from Order2 to String (or vice versa) in the companion object
+  implicit def orderFormat: RootJsonFormat[Order2] = jsonFormat1(Order2.apply)    // Json String <-> Item
 }
 
 object Marshalling extends App with JsonSupport {
@@ -44,17 +48,17 @@ object Marshalling extends App with JsonSupport {
         // this returns:
         //   {name: "book", id: 42}
       } ~
-      post {
-        entity(as[Order]) { order => // un-marshall (deserialize) JSON String to Order class
-          val count = order.items.size
-          val names = order.items.map(_.name).mkString(", ")
-          complete(s"$count items: $names")
-          // ex. curl -X POST -d '{"items":[{"name":"book1","id":1}, {"name":"book2","id":2}]}' \
-          //       -H "Content-Type: application/json" "http://localhost:9000"
-          // this returns:
-          //     2 items: book1, book2
+        post {
+          entity(as[Order]) { order => // un-marshall (deserialize) JSON String to Order class
+            val count = order.items.size
+            val names = order.items.map(_.name).mkString(", ")
+            complete(s"$count items: $names")
+            // ex. curl -X POST -d '{"items":[{"name":"book1","id":1}, {"name":"book2","id":2}]}' \
+            //       -H "Content-Type: application/json" "http://localhost:9000"
+            // this returns:
+            //     2 items: book1, book2
+          }
         }
-      }
     } ~
     pathPrefix("example2") {
       get {
@@ -62,7 +66,16 @@ object Marshalling extends App with JsonSupport {
         // ex. curl http://localhost:9000/example2
         // this returns:
         //   {name: "book", id: 43}
-      }
+      } ~
+        post {
+          entity(as[Order2]) { order => // un-marshall (deserialize) JSON String to Order class
+            val count = order.items.size
+            val names = order.items.map(_.name).mkString(", ")
+            complete(s"$count items: $names")
+            // ex. curl -X POST -d '{"items":[{"name":"book1","id":1}, {"name":"book2","id":2}]}' \
+            //       -H "Content-Type: application/json" "http://localhost:9000/example2"
+          }
+        }
     }
   }
   val bindingFuture = Http().bindAndHandle(route, "localhost", 9000)
