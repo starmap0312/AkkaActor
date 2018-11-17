@@ -4,19 +4,30 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.stream.ActorMaterializer
-import spray.json.DefaultJsonProtocol
+import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 import akka.http.scaladsl.server.Directives._
+//import spray.json.DefaultJsonProtocol.jsonFormat2
+import spray.json.DefaultJsonProtocol._
 
 import scala.io.StdIn
 
-// domain model
+// 1) define domain models
 case class Item(name: String, id: Long) // {name: "book", id: 42}
 case class Order(items: List[Item])
 
-// define a trait that takes care of implicit marshalling/un-marshalling between Json and model classes
+// 1) define serialization/de-serialization of domain models in a trait
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val itemFormat = jsonFormat2(Item)   // Json String <-> Item
-  implicit val orderFormat = jsonFormat1(Order) // Json String <-> Order
+  // this trait that takes care of implicit marshalling/un-marshalling between Json and model classes
+  // extends it wherever json (un)marshalling is needed
+  implicit val itemFormat: RootJsonFormat[Item] = jsonFormat2(Item)    // Json String <-> Item
+  implicit val orderFormat: RootJsonFormat[Order] = jsonFormat1(Order) // Json String <-> Order
+}
+
+// 2) define domain models
+case class Item2(name: String, id: Long) // {name: "book", id: 42}
+// 2) define serialization/de-serialization of domain models in companion object
+object Item2 {
+  implicit def itemFormat: RootJsonFormat[Item2] = jsonFormat2(Item2.apply)    // Json String <-> Item
 }
 
 object Marshalling extends App with JsonSupport {
@@ -27,7 +38,10 @@ object Marshalling extends App with JsonSupport {
   val route = {
     pathSingleSlash {
       get {
-        complete(Item("book", 42)) // marshall (serialize) Item to a JSON String: {name: "book", id: 42}
+        complete(Item("book", 42)) // marshall (serialize) Item to a JSON String
+        // ex. curl http://localhost:9000/
+        // this returns:
+        //   {name: "book", id: 42}
       } ~
       post {
         entity(as[Order]) { order => // un-marshall (deserialize) JSON String to Order class
@@ -39,6 +53,14 @@ object Marshalling extends App with JsonSupport {
           // this returns:
           //     2 items: book1, book2
         }
+      }
+    } ~
+    pathPrefix("example2") {
+      get {
+        complete(Item2("book", 43))
+        // ex. curl http://localhost:9000/example2
+        // this returns:
+        //   {name: "book", id: 43}
       }
     }
   }
