@@ -9,9 +9,9 @@ libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.3.1",
   "com.typesafe.akka" %% "akka-actor" % "2.+",
   "com.typesafe.akka" %% "akka-slf4j" % "2.+",
-  "com.typesafe.akka" %% "akka-http"   % "10.1.1",
-  "com.typesafe.akka" %% "akka-stream" % "2.5.11",
-  "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.1", // akka JSON marshaller Support
+  "com.typesafe.akka" %% "akka-http"   % "10.1.5",
+  "com.typesafe.akka" %% "akka-stream" % "2.5.18",
+  "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.5", // akka JSON marshaller Support
   "org.jsoup" % "jsoup" % "1.8.3",
   "com.fasterxml.jackson.core" % "jackson-core" % "2.9.7",
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.7",

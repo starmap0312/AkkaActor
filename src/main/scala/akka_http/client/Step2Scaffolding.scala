@@ -13,6 +13,8 @@ object Step2Scaffolding extends Scaffolding with App {
   val request: HttpRequest = HttpRequest(uri = "http://localhost:9000/")
 
   def sourceFuture: Future[Source[String, Any]] = {
+    // Framing.delimiter:
+    //   the request gets a response of streaming elements, which are delimited by a newline
     Http().singleRequest(request).map { response =>
       response.entity.dataBytes. // Source[ByteString, Any]
         via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true)).
@@ -26,7 +28,7 @@ object Step2Scaffolding extends Scaffolding with App {
   runWebService {
     get {
       onSuccess(sourceFuture) { source =>
-        complete {
+        complete { // completes requests with Source[ByteString, _]
           HttpResponse(
             entity = HttpEntity.Chunked.fromData(
               ContentTypes.`text/plain(UTF-8)`,

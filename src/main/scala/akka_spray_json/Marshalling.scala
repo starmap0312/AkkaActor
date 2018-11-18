@@ -1,20 +1,22 @@
 package akka_spray_json
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSupport}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.stream.ActorMaterializer
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 import akka.http.scaladsl.server.Directives._
-import spray.json.DefaultJsonProtocol._ // this is required for implicit conversion defined in companion object
+import akka.stream.scaladsl.Source
+import spray.json.DefaultJsonProtocol._
 
 import scala.io.StdIn
 
-// 1) define domain models
-case class Item(name: String, id: Long) // {name: "book", id: 42}
-case class Order(items: List[Item])
-
 // 1) define serialization/de-serialization of domain models in a trait
+// domain models
+case class Item(name: String, id: Long) // {name: "book", id: 1}
+case class Order(items: List[Item])
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   // this trait that takes care of implicit marshalling/un-marshalling between Json and model classes
   // extends the trait wherever json (un)marshalling is needed (this makes implicit method defined in the scope)
@@ -22,17 +24,29 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit def orderFormat: RootJsonFormat[Order] = jsonFormat1(Order) // Json String <-> Order
 }
 
-// 2) define domain models
-case class Item2(name: String, id: Long) // {name: "book", id: 42}
-// 2) define serialization/de-serialization of domain models in companion object
-object Item2 {
-  // compiler will try to find implicit conversion from Item2 to String (or vice versa) in the companion object
-  implicit def itemFormat: RootJsonFormat[Item2] = jsonFormat2(Item2.apply)    // Json String <-> Item
-}
+// 2) define serialization/de-serialization of domain models in an object
+// domain models
+case class Item2(name: String, id: Long) // {name: "book", id: 2}
 case class Order2(items: List[Item2])
-object Order2 {
-  // compiler will try to find implicit conversion from Order2 to String (or vice versa) in the companion object
-  implicit def orderFormat: RootJsonFormat[Order2] = jsonFormat1(Order2.apply)    // Json String <-> Item
+object JsonSupport2 extends SprayJsonSupport with DefaultJsonProtocol {
+  // this object defines implicit conversion methods
+  implicit val itemFormat: RootJsonFormat[Item2] = jsonFormat2(Item2.apply)    // Json String <-> Item
+  implicit val orderFormat: RootJsonFormat[Order2] = jsonFormat1(Order2.apply) // Json String <-> Order
+}
+// we can then use import to include the implict conversion methods to the scope
+// i.e. import JsonSupport2._
+
+// 3) define serialization/de-serialization of domain models in companion object
+// domain models:
+case class Item3(name: String, id: Long) // {name: "book", id: 3}
+object Item3 {
+  // compiler will try to find implicit conversion from Item3 to String (or vice versa) in the companion object
+  implicit def itemFormat: RootJsonFormat[Item3] = jsonFormat2(Item3.apply)    // Json String <-> Item
+}
+case class Order3(items: List[Item3])
+object Order3 {
+  // compiler will try to find implicit conversion from Order3 to String (or vice versa) in the companion object
+  implicit def orderFormat: RootJsonFormat[Order3] = jsonFormat1(Order3.apply)    // Json String <-> Item
 }
 
 object Marshalling extends App with JsonSupport {
@@ -43,7 +57,7 @@ object Marshalling extends App with JsonSupport {
   val route = {
     pathSingleSlash {
       get {
-        complete(Item("book", 42)) // marshall (serialize) Item to a JSON String
+        complete(Item("book", 1)) // marshall (serialize) Item to a JSON String
         // ex. curl http://localhost:9000/
         // this returns:
         //   {name: "book", id: 42}
@@ -60,22 +74,43 @@ object Marshalling extends App with JsonSupport {
           }
         }
     } ~
-    pathPrefix("example2") {
+//    path("example2") {
+//      import JsonSupport2._
+//      implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json()
+//
+//      get {
+//        val item2: Source[Item2, NotUsed] = Source.single(Item2("book", 2))
+//        complete(item2)
+//        // ex. curl http://localhost:9000/example2
+//        // this returns:
+//        //   {name: "book", id: 2}
+//      } ~
+//      post {
+//        entity(as[Order2]) { order => // un-marshall (deserialize) JSON String to Order class
+//          val count = order.items.size
+//          val names = order.items.map(_.name).mkString(", ")
+//          complete(s"$count items: $names")
+//          // ex. curl -X POST -d '{"items":[{"name":"book1","id":1}, {"name":"book2","id":2}]}' \
+//          //       -H "Content-Type: application/json" "http://localhost:9000/example2"
+//        }
+//      }
+//    } ~
+    pathPrefix("example3") {
       get {
-        complete(Item2("book", 43))
-        // ex. curl http://localhost:9000/example2
+        complete(Item3("book", 3))
+        // ex. curl http://localhost:9000/example3
         // this returns:
-        //   {name: "book", id: 43}
+        //   {name: "book", id: 3}
       } ~
-        post {
-          entity(as[Order2]) { order => // un-marshall (deserialize) JSON String to Order class
-            val count = order.items.size
-            val names = order.items.map(_.name).mkString(", ")
-            complete(s"$count items: $names")
-            // ex. curl -X POST -d '{"items":[{"name":"book1","id":1}, {"name":"book2","id":2}]}' \
-            //       -H "Content-Type: application/json" "http://localhost:9000/example2"
-          }
+      post {
+        entity(as[Order3]) { order => // un-marshall (deserialize) JSON String to Order class
+          val count = order.items.size
+          val names = order.items.map(_.name).mkString(", ")
+          complete(s"$count items: $names")
+          // ex. curl -X POST -d '{"items":[{"name":"book1","id":1}, {"name":"book2","id":2}]}' \
+          //       -H "Content-Type: application/json" "http://localhost:9000/example2"
         }
+      }
     }
   }
   val bindingFuture = Http().bindAndHandle(route, "localhost", 9000)

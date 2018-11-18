@@ -16,9 +16,9 @@ case class RepoAccess(ip: String, ctype: Int, port: Option[Int]) {
 }
 object RepoAccess {
   val LogLineFormat = """(.+),Type(\d+)""".r // regular expression: scala.util.matching.Regex
-  val fromLine: (String => Option[RepoAccess]) = {
+  val fromLine: (String => Option[RepoAccess2]) = {
     case line @ LogLineFormat(ip, ctype) =>
-      Some(RepoAccess(ip, ctype.toInt, None))
+      Some(RepoAccess2(ip, ctype.toInt, None))
     case line =>
       println(s"unknown format:${line}")
       None //unknown format
@@ -37,14 +37,14 @@ object Step3Aggregate extends Scaffolding with App {
       response.entity.dataBytes. // Source[ByteString, Any]
         via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true)).
         map(_.utf8String).       // Source[String, Any]
-        mapConcat(line => RepoAccess.fromLine(line).toList). // similar to flatMap: map each line String to an Option.toList
+        mapConcat(line => RepoAccess2.fromLine(line).toList). // similar to flatMap: map each line String to an Option.toList
         scan[Map[String, Int]](Map.empty)(updateMap). // map the String stream to a Map[String, Int] stream
         map(mp => mapper.writeValueAsBytes(mp))
         //map(_.toVector.sortBy(-_._2)) // map the Map[String, Int] to a sorted Vector[String, Int] stream
     }
   }
 
-  def updateMap(mp: Map[String, Int], repo: RepoAccess): Map[String, Int] = { // update & return a new map
+  def updateMap(mp: Map[String, Int], repo: RepoAccess2): Map[String, Int] = { // update & return a new map
     mp.updated(s"type${repo.ctype}", mp.getOrElse(s"type${repo.ctype}", 0) + 1) // update the Map by incrementing the value count
   }
 
