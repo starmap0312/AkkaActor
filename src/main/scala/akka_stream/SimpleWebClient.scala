@@ -17,7 +17,7 @@ object SimpleWebClient extends App {
   val outgoingConnectionFlow: Flow[ByteString, ByteString, Future[Tcp.OutgoingConnection]] =
     Tcp().outgoingConnection("127.0.0.1", 9000)
   val flow: Flow[ByteString, ByteString, NotUsed] = Flow[ByteString]
-    .via(
+    .via( // consuming the infinite entity stream and applying a framing to it
       Framing.delimiter(
         ByteString("\n"),
         maximumFrameLength = 256,
