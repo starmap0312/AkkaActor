@@ -5,13 +5,17 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSupport}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse}
 import akka.stream.ActorMaterializer
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.scaladsl.Source
+import akka.util.ByteString
+import akka_http.server.ServerLog
 import spray.json.DefaultJsonProtocol._
 
 import scala.io.StdIn
+import scala.util.Random
 
 // 1) define serialization/de-serialization of domain models in a trait
 // domain models
@@ -29,9 +33,10 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
 case class Item2(name: String, id: Long) // {name: "book", id: 2}
 case class Order2(items: List[Item2])
 object JsonSupport2 extends SprayJsonSupport with DefaultJsonProtocol {
-  // this object defines implicit conversion methods
-  implicit val itemFormat: RootJsonFormat[Item2] = jsonFormat2(Item2.apply)    // Json String <-> Item
-  implicit val orderFormat: RootJsonFormat[Order2] = jsonFormat1(Order2.apply) // Json String <-> Order
+  // this object defines implicit conversion methods, which can be imported as: import JsonSupport2._
+  implicit def itemFormat: RootJsonFormat[Item2] = jsonFormat2(Item2)    // Json String <-> Item
+  implicit def orderFormat: RootJsonFormat[Order2] = jsonFormat1(Order2) // Json String <-> Order
+  implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json()
 }
 // we can then use import to include the implict conversion methods to the scope
 // i.e. import JsonSupport2._
@@ -54,6 +59,14 @@ object Marshalling extends App with JsonSupport {
   implicit val materializer = ActorMaterializer()   // needed for the future flatMap/onComplete in the end (i.e. val bindingFuture)
   implicit val executionContext = system.dispatcher
 
+  def getItems: Source[Item2, NotUsed] = Source.fromIterator(
+    () => Iterator.fill(10) {
+      var id = Random.nextInt()
+      id = if (id < 0) -id else id
+      Item2("book", id)
+    }
+  )
+
   val route = {
     pathSingleSlash {
       get {
@@ -73,14 +86,15 @@ object Marshalling extends App with JsonSupport {
             //     2 items: book1, book2
           }
         }
-    } ~
+//    } ~
 //    path("example2") {
-//      import JsonSupport2._
-//      implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json()
-//
+//      //import JsonSupport2._
+//      //implicit val jsonStreamingSupport: JsonEntityStreamingSupport = EntityStreamingSupport.json()
 //      get {
-//        val item2: Source[Item2, NotUsed] = Source.single(Item2("book", 2))
-//        complete(item2)
+//        import JsonSupport2._
+//        //val item2: Source[Item2, NotUsed] = Source.single(Item2("book", 2))
+//        val items: Source[Item2, NotUsed] = getItems
+//        complete(items)
 //        // ex. curl http://localhost:9000/example2
 //        // this returns:
 //        //   {name: "book", id: 2}
@@ -94,7 +108,7 @@ object Marshalling extends App with JsonSupport {
 //          //       -H "Content-Type: application/json" "http://localhost:9000/example2"
 //        }
 //      }
-//    } ~
+    } ~
     pathPrefix("example3") {
       get {
         complete(Item3("book", 3))
