@@ -6,8 +6,6 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.Credentials
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
-import akka_http.server.CsvStreaming.{route, system}
-
 import scala.concurrent.Future
 import scala.io.StdIn
 import scala.util.{Failure, Success}
@@ -20,11 +18,18 @@ object Authorize extends App {
   implicit val materializer = ActorMaterializer()
   import system.dispatcher
 
-  // authenticate the user:
-  def MyUserAuthenticator(credentials: Credentials): Option[User] = credentials match {
+  // authenticate the user: type Authenticator[T] = Credentials => Option[T]
+  def MyBasicAuthenticator(credentials: Credentials): Option[User] = credentials match {
     case Credentials.Provided(id) => Some(User(id))
     case _                        => None
   }
+
+  // authenticate the user: type Authenticator[T] = Credentials => Option[T]
+  def MyOAuth2Authenticator(credentials: Credentials): Option[String] = credentials match {
+    case Credentials.Provided(token) => Some(token)
+    case _                        => None
+  }
+
   // check if user is authorized to perform admin actions:
   val admins = Set("Peter")
   def hasAdminPermissions(user: User): Boolean = admins.contains(user.name)
@@ -32,20 +37,33 @@ object Authorize extends App {
   val route = {
     Route.seal {
       // 1) authorize:
-      authenticateBasic(realm = "secure site", MyUserAuthenticator) { user =>
-        path("peters-lair") {
+      authenticateBasic(realm = "secure site", MyBasicAuthenticator) { user =>
+        path("peters-basic") {
           authorize(hasAdminPermissions(user)) {
-            complete(s"'${user.name}' visited Peter's lair")
-            // ex. curl -u John:123 http://localhost:9001/peters-lair
+            complete(s"'${user.name}' visited Peter's basic")
+            // ex. curl -u John:123 http://localhost:9001/peters-basic
             // it returns:
             //   The supplied authentication is not authorized to access this resource
-            // ex. curl -u Peter:123 http://localhost:9001/peters-lair
+            // ex. curl -u Peter:123 http://localhost:9001/peters-basic
             // it returns:
-            //   'Peter' visited Peter's lair
+            //   'Peter' visited Peter's basic
           }
         }
       } ~ {
-        // 2) extractCredentials:
+        // 2) authenticateOAuth2:
+        authenticateOAuth2(realm = "secure site2", MyOAuth2Authenticator) { token =>
+            path("peters-oauth2") {
+              complete(s"'visited Peter's oauth2 with credentials: ${token}")
+            }
+          // ex. curl http://localhost:9001/peters-oauth2
+          // it returns:
+          //  The resource requires authentication, which was not supplied with the request
+          // ex. curl -H "Authorization: Bearer token_xxx" http://localhost:9001/peters-oauth2
+          // it returns:
+          //   'visited Peter's oauth2 with credentials: token_xxx
+        }
+      } ~ {
+        // 3) extractCredentials:
         extractCredentials { creds =>
           path("peters-creds") {
             complete {
