@@ -11,7 +11,6 @@ import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import ServerLog
 import spray.json.DefaultJsonProtocol._
 
 import scala.io.StdIn
@@ -54,7 +53,7 @@ object Order3 {
   implicit def orderFormat: RootJsonFormat[Order3] = jsonFormat1(Order3.apply)    // Json String <-> Item
 }
 
-object Marshalling extends App with JsonSupport {
+object JsonStreaming extends App with JsonSupport {
   implicit val system = ActorSystem("my-webserver")
   implicit val materializer = ActorMaterializer()   // needed for the future flatMap/onComplete in the end (i.e. val bindingFuture)
   implicit val executionContext = system.dispatcher

@@ -4,7 +4,7 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.common.EntityStreamingSupport
-import akka.http.scaladsl.marshalling.Marshaller
+import akka.http.scaladsl.marshalling.{Marshaller, Marshalling}
 import akka.http.scaladsl.model.ContentTypes
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
@@ -26,9 +26,8 @@ object CsvStreaming extends App {
   implicit val logAsCsv = Marshaller.strict[ServerLog, ByteString] { log =>
     Marshalling.WithFixedContentType(
       ContentTypes.`text/csv(UTF-8)`, // this type makes browser to open a file
-      //ContentTypes.`text/plain(UTF-8)`, // this type makes browser to download a file
       () => ByteString(List(log.ip, log.ctype).mkString(","))
-    )
+    )//ContentTypes.`text/plain(UTF-8)`, // this type makes browser to download a file
   }
   // enable csv streaming:
   implicit val csvStreaming = EntityStreamingSupport.csv()
