@@ -1,14 +1,14 @@
-package akka_http.server
+package akka_spray_json
 
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshalling.{Marshaller, Marshalling}
+import akka.http.scaladsl.common.EntityStreamingSupport
+import akka.http.scaladsl.marshalling.Marshaller
 import akka.http.scaladsl.model.ContentTypes
 import akka.http.scaladsl.server.Directives._
-import akka.stream.scaladsl.Source
-import akka.http.scaladsl.common.EntityStreamingSupport
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
 import akka.util.ByteString
 
 import scala.concurrent.Future
@@ -25,7 +25,8 @@ object CsvStreaming extends App {
   // provide a marshaller from ServerLog to ByteString:
   implicit val logAsCsv = Marshaller.strict[ServerLog, ByteString] { log =>
     Marshalling.WithFixedContentType(
-      ContentTypes.`text/csv(UTF-8)`,
+      ContentTypes.`text/csv(UTF-8)`, // this type makes browser to open a file
+      //ContentTypes.`text/plain(UTF-8)`, // this type makes browser to download a file
       () => ByteString(List(log.ip, log.ctype).mkString(","))
     )
   }

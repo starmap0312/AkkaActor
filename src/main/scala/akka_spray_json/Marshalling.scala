@@ -11,7 +11,7 @@ import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import akka_http.server.ServerLog
+import ServerLog
 import spray.json.DefaultJsonProtocol._
 
 import scala.io.StdIn
