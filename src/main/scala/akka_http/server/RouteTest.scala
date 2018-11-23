@@ -14,7 +14,7 @@ package akka_http.server
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
-import akka.http.scaladsl.server.Directives.{complete, get, path}
+import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 
 import scala.io.StdIn
@@ -27,15 +27,18 @@ object RouteTest {
     implicit val executionContext = system.dispatcher
 
     val route = {
-      path("hello") {
-        get {
+      get {
+        path("path") { // only /path is handled, not /path/
+          complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello World</h1>")) // Hello World
+        } ~
+        pathPrefix("pathPrefix") { // /pathPrefix, /pathPrefix/, or /pathPrefix/1 are handled
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello World</h1>")) // Hello World
         }
       }
     }
     val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
 
-    println(s"Server at http://localhost:8080/hello\nPress RETURN to stop...")
+    println(s"Server at http://localhost:8080/path\nPress RETURN to stop...")
     StdIn.readLine() // let it run until user presses return
 
     bindingFuture
