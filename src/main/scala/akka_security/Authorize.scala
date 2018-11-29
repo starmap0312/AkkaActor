@@ -63,6 +63,19 @@ object Authorize extends App {
           //   'visited Peter's oauth2 with credentials: token_xxx
         }
       } ~ {
+        // 2.1) authenticateOAuth2PF:
+        authenticateOAuth2PF(realm = "secure site3", {
+            case Credentials.Provided(token) => token
+            case _ => None
+          }) { token =>
+            path("peters-oauth2-2") {
+            complete(s"visited Peter's oauth2 with credentials: ${token}")
+          }
+          // ex. curl -H "Authorization: Bearer token_xxx" http://localhost:9001/peters-oauth2-2
+          // it returns:
+          //   'visited Peter's oauth2 with credentials: token_xxx
+        }
+      } ~ {
         // 3) extractCredentials:
         extractCredentials { creds =>
           path("peters-creds") {
