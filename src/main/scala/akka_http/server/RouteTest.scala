@@ -33,6 +33,9 @@ object RouteTest {
         } ~
         pathPrefix("pathPrefix") { // /pathPrefix, /pathPrefix/, or /pathPrefix/1 are handled
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello World</h1>")) // Hello World
+        } ~
+        path("path1" / "path2") { // only /path1/path2/ is handled
+          complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello World</h1>")) // Hello World
         }
       }
     }
