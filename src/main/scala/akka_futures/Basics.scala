@@ -5,6 +5,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
+// https://doc.akka.io/docs/akka/2.5/futures.html
 object Basics extends App {
   val system = ActorSystem("FutureExample")
   import system.dispatcher
@@ -14,7 +15,7 @@ object Basics extends App {
     1000
   }
   val scheduledTask = akka.pattern.after(1000.millis, using = system.scheduler)(
-    Future.failed[Int](new Exception("schedule a future exception"))
+    Future.failed[Int](new RuntimeException("schedule a future exception"))
   )
   // Future.firstCompletedOf(Seq[Future]):
   //   returns a new Future to the result of the first future in the list that is completed
