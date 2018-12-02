@@ -7,7 +7,7 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
-object TimeoutExample extends App {
+object ActorTimeout extends App {
 
   class Worker extends Actor {
     override def receive: Receive = {
