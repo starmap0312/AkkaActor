@@ -47,12 +47,14 @@ object Quickstart extends App {
   //                    i.e. you need it for calling any of the run methods on a Source
 
   // example1: a simple source, emitting the integers 1 to 100
-  val source: Source[Int, NotUsed] = Source(1 to 3)
+  val source: Source[Int, NotUsed] = Source(1 to 3) // the source has an auxiliary materialized value
   // note:
   // the second type: NotUsed signals that running the source produces some auxiliary value
   //   e.g. a network source may provide information about the bound port or the peer’s address
   // where no auxiliary information is produced, the type akka.NotUsed
 
+  // Source[+T, +Mat] vs. Sink[-T, +Mat]
+  //   a Source produces elements of type T, whereas a Sink takes elements of type T
 
   // 1) source.runForeach([func]) = runWith(Sink.foreach([func]))
   //    running this Source with a foreach procedure
@@ -60,9 +62,13 @@ object Quickstart extends App {
   //matValue1 onComplete { // materialized value can be seen as external handler to a materialized stream
   //  case _ => system.terminate()
   //}
-  // 2) runWith():
-  //    connecting this Source to a Sink and run it
-  val matValue2: Future[Done] = source.runWith(Sink.foreach(num => println(num)))
+  // 2) runWith(): connecting this Source to a Sink and run it (and returns the auxiliary materialized value)
+  val printSink: Sink[Int, Future[Done]] = Sink.foreach[Int](num => println(num)) // the source has an auxiliary materialized value of Future[Done] that can be used to check if the running stream is DONE
+  val matValue2: Future[Done] = source.runWith(printSink)
+
+  // 3) source.toMat([sink]): connects a Source with a Sink
+  val stream1: RunnableGraph[NotUsed] = source.toMat(printSink)(Keep.left) // keep the Source's materialized value (NotUsed)
+  val stream2: RunnableGraph[Future[Done]] = source.toMat(printSink)(Keep.right) // keep the Sink's materialized value (Future[Done])
 
   // example2: source.scan([initial value])([func]): like foldLeft()?
   //   use the scan operator to run a computation over the whole stream: starting with the number 1
@@ -84,11 +90,11 @@ object Quickstart extends App {
     case Success(result) => println("successful IOResult") // successful IOResult
     case Failure(ex) => println("failed with exception")
   }
-  // 3.2) Flow.toMat([Sink]): create a materialized reusable Sink
-  def fileSink(filename: String): Sink[String, Future[IOResult]] =
+  // 3.2) Flow.toMat([Sink]): connect this Source to a Sink
+  def fileSink(filename: String): Sink[String, Future[IOResult]] = // this methods creates a reusable Sink
     Flow[String].
       map(s => ByteString(s + "\n")).
-      toMat(FileIO.toPath(Paths.get(filename)))(Keep.right)
+      toMat(FileIO.toPath(Paths.get(filename)))(Keep.right) // // use Keep.right if we are interested in the materialized value of sink (not source)
   factorials.map(_.toString).runWith(fileSink("factorials2.txt"))
 
   // example3:
@@ -127,12 +133,12 @@ object Quickstart extends App {
   //    every stream processing stage can produce a materialized value
   val src2: Source[Int, NotUsed] = Source(1 to 10)
   val sumSink: Sink[Int, Future[Int]] = Sink.fold[Int, Int](0)(_ + _)
-  val runnable3: RunnableGraph[Future[Int]] = src2.toMat(sumSink)(Keep.right) // we are interested in the materialized value of sink (not source)
-  // deafult is Keep.left: i.e. val runnable3: RunnableGraph[NotUsed] = Source(1 to 10).to(sumSink)
+  val runnable3: RunnableGraph[Future[Int]] = src2.toMat(sumSink)(Keep.right) // use Keep.right if we are interested in the materialized value of sink (not source)
+  // deafult is Keep.left: i.e. val runnable3: RunnableGraph[NotUsed] = Source(1 to 10).to(sumSink), use Keep.left if we are interested in the materialized value of source (not sink)
   val matValue8: Future[Int] = runnable3.run() // materialize the stream, resulting in the materialized value of sink
   println(Await.result(matValue8, 1.seconds))  // 1 + 2 + .... + 10 = 55
   // a stream can expose multiple materialized values, but it is quite common to be interested in:
-  // i) only the value of the Source in the stream: ex. NotUsed or
+  // i) only the value of the Source in the stream: ex. NotUsed
   //ii) only the value of the Sink in the stream:   ex. Future[Done], Future[Int], etc.
 
   // a stream can be materialized multiple times, which are new for each such materialization
