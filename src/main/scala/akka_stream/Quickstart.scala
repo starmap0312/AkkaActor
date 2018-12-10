@@ -10,6 +10,7 @@ import akka.util.ByteString
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.io.StdIn
 import scala.util.{Failure, Random, Success}
 
 // https://jobs.zalando.com/tech/blog/about-akka-streams/?gh_src=4n3gxh1
@@ -62,55 +63,24 @@ object Quickstart extends App {
   //matValue1 onComplete { // materialized value can be seen as external handler to a materialized stream
   //  case _ => system.terminate()
   //}
-  // 2) runWith(): connecting this Source to a Sink and run it (and returns the auxiliary materialized value)
+  // 2) runWith([Sink]): connecting this Source to a Sink and run it (and returns the auxiliary materialized value)
   val printSink: Sink[Int, Future[Done]] = Sink.foreach[Int](num => println(num)) // the source has an auxiliary materialized value of Future[Done] that can be used to check if the running stream is DONE
   val matValue2: Future[Done] = source.runWith(printSink)
 
-  // 3) source.toMat([sink]): connects a Source with a Sink
-  val stream1: RunnableGraph[NotUsed] = source.toMat(printSink)(Keep.left) // keep the Source's materialized value (NotUsed)
-  val stream2: RunnableGraph[Future[Done]] = source.toMat(printSink)(Keep.right) // keep the Sink's materialized value (Future[Done])
+  // 3) source.toMat([sink]): connects a Source with a Sink while determining to keep the auxiliary (materialized) value of either Source or Sink
+  val stream1: RunnableGraph[NotUsed] = source.toMat(printSink)(Keep.left) // keep the Source's auxiliary (materialized) value (ex. NotUsed)
+  val matValue1_1: NotUsed = stream1.run()
+  val stream2: RunnableGraph[Future[Done]] = source.toMat(printSink)(Keep.right) // keep the Sink's auxiliary (materialized) value (ex. Future[Done])
+  val matValue1_2: Future[Done] = stream2.run()
 
-  // example2: source.scan([initial value])([func]): like foldLeft()?
-  //   use the scan operator to run a computation over the whole stream: starting with the number 1
-  //   i.e. 1, 1 * 1, 1 * 1 * 2, 1 * 1 * 2 * 3 ...
-  //        1 1 2 6 24 120 ... 3628800
-  //   note: nothing is actually computed yet, this is a description of what we want to do once we run the stream
-  val factorials: Source[BigInt, NotUsed] = source.scan(BigInt(1))((acc, next) => acc * next)
-  // scan(): just like foldLeft() of collection
-  // def scan(zero: BigInt)(func: (BigInt, Out) => BigInt): Repr[BigInt]
-  //   returns: type Repr[BigInt] = Flow[In, BigInt, Mat]
-
-  // 3) FileIO.toPath([Path]): Sink[ByteString, Future[IOResult]]
-  // 3.1) FileIO.toPath([Path]): returns: Sink[ByteString, Future[IOResult]], note: Sink[-In, +Mat] where In: ByteString, Mat: Future[IOResult]]
-  val matValue3: Future[IOResult] = // IOResult is what IO operations returns to tell you how many elements were consumed and whether the stream terminated normally
-    factorials
-      .map(num => ByteString(s"$num\n")) // transform the resulting series of numbers into a stream of ByteString objects
-      .runWith(FileIO.toPath(Paths.get("factorials.txt"))) // the stream is then run by attaching a file (Sink) as the receiver of the data
-  matValue3 onComplete { // we can think of materialized values as of an external handler to a materialized stream
-    case Success(result) => println("successful IOResult") // successful IOResult
-    case Failure(ex) => println("failed with exception")
-  }
-  // 3.2) Flow.toMat([Sink]): connect this Source to a Sink
-  def fileSink(filename: String): Sink[String, Future[IOResult]] = // this methods creates a reusable Sink
-    Flow[String].
-      map(s => ByteString(s + "\n")).
-      toMat(FileIO.toPath(Paths.get(filename)))(Keep.right) // // use Keep.right if we are interested in the materialized value of sink (not source)
-  factorials.map(_.toString).runWith(fileSink("factorials2.txt"))
-
-  // example3:
-  val tweets: Source[String, NotUsed] = Source("tweet1" :: "tweet2" :: Nil)
-  val matValue4: Future[Done] = tweets
-    .map(_.toUpperCase)     // Get all sets of tweets ...
-    .reduce(_ ++ ", " ++ _) // reduce them to a single set
-    .runWith(Sink.foreach(println)) // TWEET1, TWEET2: Attach the Flow to a Sink that will finally print the tweets
-
-  // 4) RunnableFlow: a special form of a Flow, i.e. a stream that can be executed by just calling its run() method
+  // 4) Source.to([Sink]): this produces a RunnableFlow, i.e. a special form of a Flow, with one input and one output
   val src: Source[Int, NotUsed] = Source(1 to 3)                                     // Source[Int, NotUsed], where NotUsed is type of the materialized value
   val sink: Sink[Int, Future[Done]] = Sink.foreach[Int](element => println(element)) // Sink[Int, Future[Done]], where Future[Done] is a future of type of the materialized value
   val runnable: RunnableGraph[NotUsed] = src to sink // source.to([sink])                // RunnableGraph[NotUsed], where NotUsed is type of the materialized value
   val matValue6: NotUsed = runnable.run() // 1 2 3                                       // NotUsed, where NotUsed is type of the materialized value (what we get when we run a stream: ex. side effects)
+  // a stream that can be executed by just calling its run() method
 
-  // 5) Sink as an actor (vs. simple use case: ex. Sink as a Function1)
+  // 5) Sink.actorRef([actorRef]): Sink as an actor (vs. simple use case: ex. Sink as a Function1)
   val sinkActor: ActorRef = system.actorOf(Props(
     new Actor {
       override def receive = {
@@ -142,7 +112,7 @@ object Quickstart extends App {
   //ii) only the value of the Sink in the stream:   ex. Future[Done], Future[Int], etc.
 
   // a stream can be materialized multiple times, which are new for each such materialization
-  val matValue9: Future[Int] = runnable3.run() // materialize the stream, resulting in the materialized value of sink
+  val matValue9: Future[Int] = runnable3.run() // materialize the stream once again, resulting in another materialized value of sink
   println(Await.result(matValue9, 1.seconds))  // 1 + 2 + .... + 10 = 55
   // note: matValue6 and matValue7 are different futures
 
@@ -150,9 +120,37 @@ object Quickstart extends App {
   val source1: Source[String, NotUsed] = Source.single("single value")
   val source2: Source[String, NotUsed] = Source.fromFuture(Future.successful("success value")) // create a source from a Future
 
-  // 9) time-based processing
+  // 10) source.scan([initial])([(element1, element2) => value]): accumulate stream elements one by one, producing another stream, similar to what collection.foldLeft()() does
+  //   use the scan operator to run a computation over the whole stream: starting with the number 1
+  //   i.e. 1, 1 * 1, 1 * 1 * 2, 1 * 1 * 2 * 3 ...
+  //        1 1 2 6 24 120 ... 3628800
+  //   note: nothing is actually computed yet, this is a description of what we want to do once we run the stream
+  val factorialSource: Source[BigInt, NotUsed] = source.scan(BigInt(1))((acc, next) => acc * next)
+  //
+  // def scan(zero: BigInt)(func: (BigInt, Out) => BigInt): Repr[BigInt]
+  //   returns: type Repr[BigInt] = Flow[In, BigInt, Mat]
+
+  // 10.1) FileIO.toPath([Path]): Sink[ByteString, Future[IOResult]]
+  //       this returns a Sink[ByteString, Future[IOResult]]
+  //       note: Sink[-In, +Mat] where In: ByteString, Mat: Future[IOResult]]
+  val matValue3: Future[IOResult] = // IOResult is what IO operations returns to tell you how many elements were consumed and whether the stream terminated normally
+  factorialSource
+    .map(num => ByteString(s"$num\n")) // transform the resulting series of numbers into a stream of ByteString objects
+    .runWith(FileIO.toPath(Paths.get("factorials.txt"))) // the stream is then run by attaching a file (Sink) as the receiver of the data
+  matValue3 onComplete { // we can think of materialized values as of an external handler to a materialized stream
+    case Success(result) => println("successful IOResult") // successful IOResult
+    case Failure(ex) => println("failed with exception")
+  }
+  // 10.2) Flow.toMat([Sink]): connect this Source to a Sink
+  def fileSink(filename: String): Sink[String, Future[IOResult]] = // this methods creates a reusable Sink
+    Flow[String].
+      map(s => ByteString(s + "\n")).
+      toMat(FileIO.toPath(Paths.get(filename)))(Keep.right) // // use Keep.right if we are interested in the materialized value of sink (not source)
+  factorialSource.map(_.toString).runWith(fileSink("factorials2.txt"))
+
+  // 10.3) time-based processing
   // Source.zipWith([Source])((e1, e2) => out): combine two Sources & map them to a Function2
-  val matValue10: Future[Done] = factorials.
+  val matValue10: Future[Done] = factorialSource.
     zipWith(Source(0 to 3))((num, idx) => s"${idx}! = ${num}").
     throttle(1, 1.seconds, 1, ThrottleMode.Shaping). // slow down the stream to 1 element per second
     runForeach(println) // 0! = 1, 1! = 1, 2! = 2, 3! = 6
@@ -163,4 +161,15 @@ object Quickstart extends App {
   matValue10 onComplete {
     case Success(Done) => system.terminate()
   }
+
+  // 11) source.reduce([(element1, element2) => result]): reduce stream to a single value, similar to what collection.reduce() does
+  val tweets: Source[String, NotUsed] = Source("tweet1" :: "tweet2" :: Nil)
+  val matValue4: Future[Done] = tweets
+    .map(_.toUpperCase)     // Get all sets of tweets ...
+    .reduce(_ ++ ", " ++ _) // reduce them to a single set
+    .runWith(Sink.foreach(println)) // TWEET1, TWEET2: Attach the Flow to a Sink that will finally print the tweets
+
+
+  StdIn.readLine()
+  system.terminate()
 }
