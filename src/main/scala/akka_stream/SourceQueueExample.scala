@@ -19,13 +19,13 @@ object SourceQueueExample extends App {
   //      we can then offer numbers to the Source using the auxiliary SourceQueue
   val source: Source[Int, SourceQueueWithComplete[Int]] =
     Source.queue[Int](bufferSize = 3, overflowStrategy = OverflowStrategy.backpressure)
-      .throttle(elements = 1, 5.seconds) // control the rate of the Source to be: at most 1 elements per 5 seconds (a slow downstream)
+      .throttle(elements = 1, 3.seconds) // control the rate of the Source to be: at most 1 elements per 3 seconds (a slow downstream)
   val queue: SourceQueueWithComplete[Int] = source                     // connect the Source to a Sink that prints the number
     .toMat(Sink.foreach(num => println(s"completed $num")))(Keep.left) // keep the Source's materialized value, i.e. SourceQueue
     .run()(materializer) // run the source (stream) to get the auxiliary SourceQueue
 
   implicit val dispatcher = system.dispatcher
-  val anotherSource = Source(1 to 10) // creates another Source of Int (a fast upstream)
+  val anotherSource = Source(1 to 5) // creates another Source of Int (a fast upstream)
     .mapAsync(1)(num =>     // make the Source to map its number to offer to the SourceQueue
       // def offer(elem: T): Future[QueueOfferResult], used to check if the enqueue is successful
       queue.offer(num).map {
@@ -41,9 +41,16 @@ object SourceQueueExample extends App {
   // i.e. enqueued 1 & completed 1, then enqueued 2, 3, 4, 5 (as bufferSize = 3)
 
   matValue2 onComplete {
-    case Success(Done) => println("anotherSource is Done with offering all its numbers") // Running anotherSource is Done: when completed 6
+    case Success(Done) => println("anotherSource is Done with offering all its numbers") // anotherSource is Done: when completed 1
+  }
+
+  // SourceQueue.watchCompletion
+  queue watchCompletion() onComplete {
+    case Success(Done) => println("SourceQueue is complete")
   }
 
   StdIn.readLine() // this is required: otherwise, we will terminate both streams abruptly (throw AbruptStageTerminationException exception)
+  queue.complete() // SourceQueue is complete: watchCompletion catches the SourceQueue completion
+  StdIn.readLine()
   system.terminate()
 }
