@@ -3,7 +3,7 @@ package akka_stream
 import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
-import akka.stream.scaladsl.{Keep, RunnableGraph, Sink, Source, SourceQueueWithComplete}
+import akka.stream.scaladsl.{Keep, Sink, Source, SourceQueueWithComplete}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -16,16 +16,17 @@ object SourceQueueExample extends App {
   implicit val materializer = ActorMaterializer()
 
   // 1) Source.queue[Int]([bufferSize], [overflowStrategy]): creates a Source of Int, and when it is run we get an auxiliary SourceQueue
+  //      we can then offer numbers to the Source using the auxiliary SourceQueue
   val source: Source[Int, SourceQueueWithComplete[Int]] =
-    Source.queue[Int](bufferSize = 5, overflowStrategy = OverflowStrategy.backpressure)
-      .throttle(elements = 3, 1.seconds) // control the rate of the Source to be: at most 3 elements per second
+    Source.queue[Int](bufferSize = 3, overflowStrategy = OverflowStrategy.backpressure)
+      .throttle(elements = 1, 5.seconds) // control the rate of the Source to be: at most 1 elements per 5 seconds (a slow downstream)
   val queue: SourceQueueWithComplete[Int] = source                     // connect the Source to a Sink that prints the number
     .toMat(Sink.foreach(num => println(s"completed $num")))(Keep.left) // keep the Source's materialized value, i.e. SourceQueue
-    .run()(materializer) // run the source (stream): this returns the auxiliary SourceQueue
+    .run()(materializer) // run the source (stream) to get the auxiliary SourceQueue
 
   implicit val dispatcher = system.dispatcher
-  val anotherSource = Source(1 to 10) // creates another Source of Int
-    .mapAsync(1)(num =>     // map each element of the Source to offer to the SourceQueue
+  val anotherSource = Source(1 to 10) // creates another Source of Int (a fast upstream)
+    .mapAsync(1)(num =>     // make the Source to map its number to offer to the SourceQueue
       // def offer(elem: T): Future[QueueOfferResult], used to check if the enqueue is successful
       queue.offer(num).map {
         case QueueOfferResult.Enqueued    => println(s"enqueued $num")
@@ -34,12 +35,15 @@ object SourceQueueExample extends App {
         case QueueOfferResult.QueueClosed => println("Source Queue closed")
       }
     )
-  val matValue2: Future[Done] = anotherSource.runWith(Sink.ignore)(materializer) // run the Source
+  val matValue2: Future[Done] = anotherSource.runWith(Sink.ignore)(materializer)
+  // connect the Source to a Sink that does nothing, then run the stream to offer numbers to the SourceQueue
+  // note: the stream will be back pressured by the downstream
+  // i.e. enqueued 1 & completed 1, then enqueued 2, 3, 4, 5 (as bufferSize = 3)
 
   matValue2 onComplete {
-    case Success(Done) => println("Running anotherSource is Done") // Running anotherSource is Done
+    case Success(Done) => println("anotherSource is Done with offering all its numbers") // Running anotherSource is Done: when completed 6
   }
 
-  StdIn.readLine()
+  StdIn.readLine() // this is required: otherwise, we will terminate both streams abruptly (throw AbruptStageTerminationException exception)
   system.terminate()
 }
