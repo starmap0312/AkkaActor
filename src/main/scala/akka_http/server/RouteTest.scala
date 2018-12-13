@@ -79,8 +79,7 @@ object RouteTest {
               anyObject => HttpEntity(MediaTypes.`application/json`, mapper.writeValueAsString(anyObject))
             }
           }
-          val map: Map[String, Any] = Map("name" -> "john", "age" -> 10)
-          complete((map)) // {name: "john", age: 1}
+          complete(Map("name" -> "john", "age" -> 10)) // {name: "john", age: 1}
           // this returns with header: Content-Type: application/octet-stream
         }
       }
