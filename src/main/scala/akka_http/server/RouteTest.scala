@@ -16,7 +16,12 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
+import com.fasterxml.jackson.annotation.JsonInclude.Include
+import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 
+import scala.concurrent.Future
 import scala.io.StdIn
 
 // Set up a simple web-server that responds: <h>Hello World</h1>
@@ -25,6 +30,11 @@ object RouteTest {
     implicit val system = ActorSystem("my-webserver")
     implicit val materializer = ActorMaterializer()   // needed for the future flatMap/onComplete in the end (i.e. val bindingFuture)
     implicit val executionContext = system.dispatcher
+
+    val mapper = new ObjectMapper with ScalaObjectMapper
+    mapper.registerModule(DefaultScalaModule)
+    mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    mapper.setSerializationInclusion(Include.NON_ABSENT)
 
     val route = {
       get {
@@ -36,6 +46,15 @@ object RouteTest {
         } ~
         path("path1" / "path2") { // only /path1/path2/ is handled
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello World</h1>")) // Hello World
+        } ~
+        path("future") { // ex. ask an actor for a value
+          complete(Future("a future value")) // a future value
+        } ~
+        path("readTree") { // ex. objectMapper.readTree([jsonString]).toString
+          complete(mapper.readTree("""{"name": "john", "age": 10}""").toString) // {name: "john", age: 10}
+        }  ~
+        path("writeValueAsString") { // ex. objectMapper.writeValueAsString([map])
+          complete(mapper.writeValueAsString(Map("name" -> "john", "age" -> 10))) // {name: "john", age: 1}
         }
       }
     }
