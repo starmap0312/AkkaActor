@@ -13,7 +13,8 @@ package akka_http.server
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
+import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, MediaType, MediaTypes}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.fasterxml.jackson.annotation.JsonInclude.Include
@@ -50,11 +51,37 @@ object RouteTest {
         path("future") { // ex. ask an actor for a value
           complete(Future("a future value")) // a future value
         } ~
-        path("readTree") { // ex. objectMapper.readTree([jsonString]).toString
-          complete(mapper.readTree("""{"name": "john", "age": 10}""").toString) // {name: "john", age: 10}
+        path("readTree") { // ex. objectMapper.readTree([jsonString])
+          // de-serialize Json String as JsonNode
+          val jsonnode = mapper.readTree("""{"name": "john", "age": 10}""")
+          // serialize JsonNoe  as Json String
+          complete(jsonnode.toString) // {name: "john", age: 10}
         }  ~
+        path("readValue") { // ex. de-serialize: objectMapper.readValue[Map[String, Any]]([jsonString])
+          // de-serialize Json String  as Map[String, Any]
+          val map = mapper.readValue[Map[String, Any]]("""{"name": "john", "age": 10}""")
+          // serialize Map[String, Any]  as Json String
+          complete(mapper.writeValueAsString(map)) // {name: "john", age: 10}
+        } ~
         path("writeValueAsString") { // ex. objectMapper.writeValueAsString([map])
           complete(mapper.writeValueAsString(Map("name" -> "john", "age" -> 10))) // {name: "john", age: 1}
+          // this returns with header: Content-Type: text/plain; charset=UTF-8
+        } ~
+        path("writeValueAsBytes") { // ex. objectMapper.writeValueAsString([map])
+          // serialize Map[String, Any] as byte[]
+          complete(mapper.writeValueAsBytes(Map("name" -> "john", "age" -> 10))) // {name: "john", age: 1}
+          // this returns with header: Content-Type: application/octet-stream
+        } ~
+        path("map") { // ex. define implicit val ToEntityMarshaller
+          // serialize Map[String, Any] as byte[]
+          implicit val toEntityMarshaller: ToEntityMarshaller[Any] = {
+            Marshaller.withFixedContentType(MediaTypes.`application/json`) {
+              anyObject => HttpEntity(MediaTypes.`application/json`, mapper.writeValueAsString(anyObject))
+            }
+          }
+          val map: Map[String, Any] = Map("name" -> "john", "age" -> 10)
+          complete((map)) // {name: "john", age: 1}
+          // this returns with header: Content-Type: application/octet-stream
         }
       }
     }
