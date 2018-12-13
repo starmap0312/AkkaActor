@@ -80,13 +80,13 @@ object RouteTest {
             }
           }
           complete(Map("name" -> "john", "age" -> 10)) // {name: "john", age: 1}
-          // this returns with header: Content-Type: application/json
+          // this returns with header: Content-Type: application/json !!!!
         } ~
         path("httpEntity") { // ex. define implicit val ToEntityMarshaller
           complete(
             HttpEntity(MediaTypes.`application/json`, mapper.writeValueAsString(Map("name" -> "john", "age" -> 10)))
           ) // {name: "john", age: 1}
-          // this returns with header: Content-Type: application/json
+          // this returns with header: Content-Type: application/json !!!!
         }
       }
     }
