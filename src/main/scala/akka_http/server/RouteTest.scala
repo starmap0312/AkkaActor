@@ -24,6 +24,7 @@ import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 
 import scala.concurrent.Future
 import scala.io.StdIn
+import scala.util.Failure
 
 // Set up a simple web-server that responds: <h>Hello World</h1>
 object RouteTest {
@@ -50,6 +51,13 @@ object RouteTest {
         } ~
         path("future") { // ex. ask an actor for a value
           complete(Future("a future value")) // a future value
+        } ~
+        path("exception") { // ex. ask an actor for a value
+          complete(
+            Future.failed(new Exception("recover from a Future failed new Exception")) recover {
+              case ex: Throwable => ex.getMessage
+            }
+          )
         } ~
         path("readTree") { // ex. objectMapper.readTree([jsonString])
           // de-serialize Json String as JsonNode
