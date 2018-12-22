@@ -139,9 +139,8 @@ object PipelineText extends App {
   import system.dispatcher
 
   val pipeline = system.actorOf(Props(new Pipeline(Vector(new Task1("name1"), new Task2("name2")))), "pipeline")
-  val ctx = Context()
-  val result: Future[Context] = (pipeline ? ctx).mapTo[Context] // returns a Future which may be a Failure(AskTimeoutException)
 
+  val result: Future[Context] = (pipeline ? Context()).mapTo[Context] // returns a Future which may be a Failure(AskTimeoutException)
   result onComplete {
     case Success(ctx) =>
       ctx.logs.foreach(println)
