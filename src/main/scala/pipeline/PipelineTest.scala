@@ -145,13 +145,18 @@ object PipelineText extends App {
   result onComplete {
     case Success(ctx) =>
       ctx.logs.foreach(println)
-//      [07/22 15:07] executes task name1
-//      [07/22 15:07] executes task name2
-//      [07/22 15:07] pipeline completes
+//      [30/22 15:30] executes task name1
+//      [30/22 15:30] set parameter 'param1' -> '1'
+//      [30/22 15:30] set parameter 'param2' -> '2'
+//      [30/22 15:30] executes task name2
+//      [30/22 15:30] set parameter 'param1' -> '3'
+//      [30/22 15:30] set parameter 'param2' -> '4'
+//      [30/22 15:30] pipeline completes
       ctx.parameters.foreach(println)
 //      (param1,3)
 //      (param2,4)
-      ctx.errors.foreach(println)              // ErrorEntry(a non-fatal error occurs,recoverable)
+      ctx.errors.foreach(println)
+//      ErrorEntry(a non-fatal error occurs,recoverable)
     case Failure(ex) => println(ex.getMessage) // AskTimeoutException: the recipient actor didn't send a reply within timeout
   }
   StdIn.readLine()
