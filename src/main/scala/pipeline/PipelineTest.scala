@@ -134,6 +134,13 @@ class LocalTask2(val name: String) extends Task {
     Future.successful(result(ctx))
   }
 }
+class HttpTask(val name: String) extends Task {
+  override def execute(implicit ctx: Context, actorContext: ActorContext): Future[Context] = {
+    log(s"add remote task $name")
+    val reqs = Seq(Request(uri = "http://www.example.com", timeout = 500.millis))
+    Future.successful(result(ctx).copy(requests = reqs))
+  }
+}
 class HttpExecution(val name: String) extends Task {
   // import akka.pattern.ask // import if need to ask another actor
   override def execute(implicit ctx: Context, actorContext: ActorContext): Future[Context] = {
@@ -141,11 +148,11 @@ class HttpExecution(val name: String) extends Task {
     import actorContext.dispatcher
     import actorContext.system
     val responsesFuture: Seq[Future[(Request, Response)]] = ctx.requests.map { req: Request =>
-      // implicit val timeout = akka.util.Timeout(req.timeout) // specify timeout if the task is to ask another actor
+      // implicit val timeout = akka.util.Timeout(req.timeout) // specify timeout of asking another actor: will receive Failure(AskTimeoutException)
       Http().singleRequest(HttpRequest(uri = req.uri)).map { resp: HttpResponse =>
         req -> Response(resp)
       }.recover {
-        case ex: Throwable => req -> Response(ex, hasError = true)
+        case ex: Throwable => req -> Response(ex, hasError = true) // ex. in the case of timeout, set the response to hasError
       }
     }
     val future: Future[Context] = Future.sequence(responsesFuture).map { responses: Seq[(Request, Response)] =>
@@ -158,11 +165,14 @@ class HttpExecution(val name: String) extends Task {
     future
   }
 }
-class HttpTask(val name: String) extends Task {
+class HttpPostExecution(val name: String) extends Task {
   override def execute(implicit ctx: Context, actorContext: ActorContext): Future[Context] = {
-    log(s"add remote task $name")
-    val reqs = Seq(Request(uri = "http://www.example.com", timeout = 500.millis))
-    Future.successful(result(ctx).copy(requests = reqs))
+    log(s"execute post task $name")
+    ctx.responses.filter(_._1.uri.nonEmpty).foreach {
+      case (req, Response(resp: HttpResponse, _)) => parameter("status", resp.status) // set context parameter: status based on remote task response
+      case (req, _: Any) =>
+    }
+    Future.successful(result(ctx))
   }
 }
 
@@ -177,7 +187,13 @@ object PipelineText extends App {
 
   val pipeline = system.actorOf(
     Props(
-      new Pipeline(Vector(new LocalTask1("local task1"), new LocalTask2("local task2"), new HttpTask("http request"), new HttpExecution("http execution")))
+      new Pipeline(Vector(
+        new LocalTask1("local task1"),
+        new LocalTask2("local task2"),
+        new HttpTask("http request"),
+        new HttpExecution("http execution"),
+        new HttpPostExecution("http post execution")
+      ))
     ),
     "pipeline"
   )
@@ -194,14 +210,14 @@ object PipelineText extends App {
 //      [38/03 17:38] set parameter 'param2' -> '4'
 //      [38/03 17:38] add remote task http request
 //      [38/03 17:38] execute remote task http execution
+//      [06/04 11:06] execute post task http post execution
 //      [38/03 17:38] pipeline completes
       ctx.parameters.foreach(println)
 //      (param1,3)
 //      (param2,4)
+//      (status,200 OK)
       ctx.errors.foreach(println)
 //      ErrorEntry(a non-fatal error occurs,recoverable)
-      ctx.responses.foreach((response: (Request, Response)) => println(response._2.response.asInstanceOf[HttpResponse].status))
-//      200 OK
     case Failure(ex) => println(ex.getMessage) // AskTimeoutException: the recipient actor didn't send a reply within timeout
   }
   StdIn.readLine()
