@@ -157,7 +157,7 @@ class HttpExecution(val name: String) extends Task {
     }
     val future: Future[Context] = Future.sequence(responsesFuture).map { responses: Seq[(Request, Response)] =>
       responses.foreach {
-        case (req, Response(ex: Throwable, hasError)) if hasError => error(s"Request fails")
+        case (req, Response(ex: Throwable, hasError)) if hasError => error(s"Request fails") // set error log: ErrorEntry(Request fails,recoverable)
         case (req, _: Any) =>
       }
       result(ctx).copy(requests = Seq(), responses = ctx.responses ++ responses) // empty the requests and append the responses to the context
@@ -170,7 +170,7 @@ class HttpPostExecution(val name: String) extends Task {
     log(s"execute post task $name")
     ctx.responses.filter(_._1.uri.nonEmpty).foreach {
       case (req, Response(resp: HttpResponse, _)) => parameter("status", resp.status) // set context parameter: status based on remote task response
-      case (req, _: Any) =>
+      case (req, _: Any) => //do nothing in the case of timeout (set timeout in application.conf: akka.http.client.connecting-timeout)
     }
     Future.successful(result(ctx))
   }
