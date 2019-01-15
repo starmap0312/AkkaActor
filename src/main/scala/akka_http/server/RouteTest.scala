@@ -46,6 +46,15 @@ object RouteTest {
         pathPrefix("pathPrefix") { // /pathPrefix, /pathPrefix/, or /pathPrefix/1 are handled
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello World</h1>")) // Hello World
         } ~
+        pathPrefix("mechanic") { // http://localhost:8080/mechanic/refeed/abc?p=0&q=1
+          pathPrefix("refeed") {
+            ctx =>
+              val subpath = ctx.unmatchedPath.toString().drop(1)                    // abc
+              val q: String = ctx.unmatchedPath.toString().drop(1) + ctx.request.uri.rawQueryString.map("?" + _).getOrElse("")
+              val params = ctx.request.uri.rawQueryString.map("?" + _).getOrElse("")// p=0&q=1 ---> ?p=0&q=1
+              ctx.complete(subpath + ", " + params)                                 // abc, ?p=0&q=1
+          }
+        } ~
         path("path1" / "path2") { // only /path1/path2/ is handled
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello World</h1>")) // Hello World
         } ~
