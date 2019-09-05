@@ -19,7 +19,7 @@ object QuickStartRoute extends App {
   val route: Route =
     // 1) get, path: Directives for matching (filtering) requests
     get {                       // i.e. HttpMethods.GET
-      // i) curl http://localhost:9000/abc/10
+      // i) curl http://localhost:9000/abc/10, but not http://localhost:9000/abc/10
       path("abc" / IntNumber) {        // i.e. Uri.Path("/abc")
         // leaf Directive: ex. complete, redirect, for specifying responses
         num => complete(s"Hello World, with num=${num}") // i.e. Future.successful(HttpResponse(entity = "Hello World"))

@@ -40,7 +40,7 @@ object RouteTest {
 
     val route = {
       get {
-        path("path") { // only /path is handled, not /path/
+        path("path") { // only /path is handled, but not /path/
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello World</h1>")) // Hello World
         } ~
         pathPrefix("pathPrefix") { // /pathPrefix, /pathPrefix/, or /pathPrefix/1 are handled
@@ -55,8 +55,17 @@ object RouteTest {
               ctx.complete(subpath + ", " + params)                                 // abc, ?p=0&q=1
           }
         } ~
-        path("path1" / "path2") { // only /path1/path2/ is handled
+        path("path1" / "path2") { // only /path1/path2 is handled, but not /path1/path2/
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello World</h1>")) // Hello World
+        } ~
+        path("path3" / Segment) { segment => // /path3/[segment] are handled, but not /path3/segment/
+          complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"<h1>$segment</h1>")) // Hello World
+        } ~
+        path("path4" / Segment.?) { someSegment => // /path4/ or /path4/[segment] are handled, but not /path4 and not /path4/segment/
+          complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"<h1>${someSegment.getOrElse("no segment")}</h1>")) // Hello World
+        } ~
+        (path("path5" / Segment.?) & parameterMap) { (someSegment: Option[String], params: Map[String, String]) => // /path5/?a=1&b=2 or /path5/[segment]?a=1&b=2 are handled, but not /path4 and not /path4/segment/
+          complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"<h1>${someSegment.getOrElse("no segment")}, ${params}</h1>")) // Hello World
         } ~
         path("future") { // ex. ask an actor for a value
           complete(Future("a future value")) // a future value
