@@ -7,6 +7,8 @@ import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.actor.ExtendedActorSystem
 
+// If you want to add features to Akka, define ExtensionId class with its implementation
+// Extensions will only be "loaded once" per ActorSystem (a shared instance in within an ActorSystem) and managed by Akka
 class CountExtensionImpl extends Extension {
   //Since this Extension is a shared instance per ActorSystem we need to be thread-safe
   private val counter = new AtomicLong(0)

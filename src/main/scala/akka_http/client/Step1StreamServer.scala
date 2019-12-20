@@ -16,6 +16,7 @@ import scala.util.{Failure, Success}
 object Step1StreamServer extends App {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
+
   import system.dispatcher
 
   def sourceFuture: Future[Source[String, Any]] = {
@@ -28,7 +29,7 @@ object Step1StreamServer extends App {
     future
   }
 
-  val route: Route =
+  val route: Route = {
     get {
       onSuccess(sourceFuture) { source =>
         complete {
@@ -41,7 +42,7 @@ object Step1StreamServer extends App {
         }
       }
     }
-
+  }
   val config = system.settings.config.getConfig("app")
   val interface = config.getString("interface")
   val port = config.getInt("port")
