@@ -25,7 +25,7 @@ object HttpEntityExample extends App {
       path("fixed") {
         complete {
           // the following are equivalent:
-          "Hello World"
+          // ex. "Hello World"
           HttpEntity(ContentTypes.`text/plain(UTF-8)`, ByteString("Hello World"))
           HttpEntity.Strict(ContentTypes.`text/plain(UTF-8)`, ByteString("Hello World"))
           HttpResponse(entity =
