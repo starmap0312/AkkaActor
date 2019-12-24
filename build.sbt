@@ -4,13 +4,14 @@ name := "AkkaActor"
 version := "0.1"
 
 scalaVersion := "2.12.6"
-val akkaVersion = "2.+"
+val akkaVersion = "2.6.+"
 
 libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.3.1",
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+  "com.typesafe.akka" %% "akka-discovery" % akkaVersion,
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.+", // akka JSON marshaller Support
   "com.typesafe.akka" %% "akka-http"   % "10.+",
   "org.jsoup" % "jsoup" % "1.8.3",
@@ -28,7 +29,7 @@ libraryDependencies ++= Seq(
 // sbt publishLocal:
 //   this creates the package ~/.ivy2/local/default/akkaactor_2.12/0.1/jars/akkaactor_2.12.jar
 
-enablePlugins(JavaAppPackaging)
+enablePlugins(JavaAppPackaging) // for building distribution files with executables
 // Use of the sbt-native-packager plugin allows you to run the following commands:
 //   add "addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.5.2")" to file: project/plugins.sbt
 // sbt universal:packageBin:
@@ -50,3 +51,10 @@ enablePlugins(JavaAppPackaging)
 //   this creates a debian package
 // sbt rpm:packageBin: this generates an rpm
 //   this creates a rpm package
+
+enablePlugins(AkkaGrpcPlugin) // for akka grpc
+// sbt compile:
+//   this generates code from the definition of .proto files
+// ALPN agent
+enablePlugins(JavaAgent) // for akka grpc
+javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9" % "runtime;test"
