@@ -52,9 +52,9 @@ enablePlugins(JavaAppPackaging) // for building distribution files with executab
 // sbt rpm:packageBin: this generates an rpm
 //   this creates a rpm package
 
-enablePlugins(AkkaGrpcPlugin) // for akka grpc
+enablePlugins(AkkaGrpcPlugin) // for akka grpc client & server
 // sbt compile:
 //   this generates code from the definition of .proto files
 // ALPN agent
-enablePlugins(JavaAgent) // for akka grpc
+enablePlugins(JavaAgent) // for akka grpc server (Plugin for adding Java agents to projects, a JVM agent that enables TLS ALPN/NPN extension)
 javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9" % "runtime;test"
