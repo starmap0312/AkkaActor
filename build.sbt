@@ -58,3 +58,10 @@ enablePlugins(AkkaGrpcPlugin) // for akka grpc client & server
 // ALPN agent
 enablePlugins(JavaAgent) // for akka grpc server (Plugin for adding Java agents to projects, a JVM agent that enables TLS ALPN/NPN extension)
 javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9" % "runtime;test"
+
+// sbt Multi-project builds 
+lazy val subProject = (project in file("subproject"))
+// by running sbt universal:packageBin, it will create: subproject/target/scala-2.12/subproject_2.12-0.2.jar
+lazy val mainProject = (project in file(".")).dependsOn(subProject)
+// in akkaactor.akkaactor-0.1.jar, it will include subproject.subproject-0.2.jar
+// therefore, you can use any classes/objects/packages defined in the subproject in your main project

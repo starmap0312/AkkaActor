@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.linked.project.id="AkkaActor-build" external.linked.project.path="$MODULE_DIR$/../../project" external.root.project.path="$MODULE_DIR$/../.." external.system.id="SBT" sbt.imports="_root_.sbt.Keys._, _root_.sbt._, _root_.sbt.plugins.IvyPlugin, _root_.sbt.plugins.JvmPlugin, _root_.sbt.plugins.CorePlugin, _root_.sbt.plugins.JUnitXmlReportPlugin, _root_.sbt.plugins.Giter8TemplatePlugin, _root_.scala.xml.{TopScope=&amp;gt;SUB:DOLLARscope}" sbt.resolvers="https://repo1.maven.org/maven2/|maven|public, file:/Users/kuanyu/.sbt/preloaded/|maven|local-preloaded, /Users/kuanyu/.ivy2/cache|ivy|Local cache" type="SBT_MODULE" version="4">
+<module external.linked.project.id="AkkaActor-build" external.linked.project.path="$MODULE_DIR$/../../project" external.root.project.path="$MODULE_DIR$/../.." external.system.id="SBT" sbt.imports="_root_.com.typesafe.sbt.SbtNativePackager.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.JavaAppPackaging.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.jar.ClasspathJarPlugin.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.jar.LauncherJarPlugin.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.jlink.JlinkPlugin.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.scripts.BashStartScriptPlugin.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.scripts.BatStartScriptPlugin.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.systemloader.SystemdPlugin.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.systemloader.SystemloaderPlugin.autoImport._, _root_.com.typesafe.sbt.packager.debian.DebianPlugin.autoImport._, _root_.com.typesafe.sbt.packager.docker.DockerPlugin.autoImport._, _root_.com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin.autoImport._, _root_.com.typesafe.sbt.packager.jdkpackager.JDKPackagerPlugin.autoImport._, _root_.com.typesafe.sbt.packager.linux.LinuxPlugin.autoImport._, _root_.com.typesafe.sbt.packager.rpm.RpmPlugin.autoImport._, _root_.com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._, _root_.com.typesafe.sbt.packager.windows.WindowsPlugin.autoImport._, _root_.akka.grpc.sbt.AkkaGrpcPlugin.autoImport._, _root_.sbtprotoc.ProtocPlugin.autoImport._, _root_.org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._, _root_.com.lightbend.sbt.javaagent.JavaAgent.autoImport._, _root_.sbt.Keys._, _root_.sbt._, _root_.sbt.plugins.IvyPlugin, _root_.sbt.plugins.JvmPlugin, _root_.sbt.plugins.CorePlugin, _root_.sbt.plugins.JUnitXmlReportPlugin, _root_.sbt.plugins.Giter8TemplatePlugin, _root_.com.typesafe.sbt.SbtNativePackager, _root_.com.typesafe.sbt.packager.archetypes.JavaAppPackaging, _root_.com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging, _root_.com.typesafe.sbt.packager.archetypes.jar.ClasspathJarPlugin, _root_.com.typesafe.sbt.packager.archetypes.jar.LauncherJarPlugin, _root_.com.typesafe.sbt.packager.archetypes.jlink.JlinkPlugin, _root_.com.typesafe.sbt.packager.archetypes.scripts.AshScriptPlugin, _root_.com.typesafe.sbt.packager.archetypes.scripts.BashStartScriptPlugin, _root_.com.typesafe.sbt.packager.archetypes.scripts.BatStartScriptPlugin, _root_.com.typesafe.sbt.packager.archetypes.systemloader.SystemVPlugin, _root_.com.typesafe.sbt.packager.archetypes.systemloader.SystemdPlugin, _root_.com.typesafe.sbt.packager.archetypes.systemloader.SystemloaderPlugin, _root_.com.typesafe.sbt.packager.archetypes.systemloader.UpstartPlugin, _root_.com.typesafe.sbt.packager.debian.DebianDeployPlugin, _root_.com.typesafe.sbt.packager.debian.DebianPlugin, _root_.com.typesafe.sbt.packager.debian.JDebPackaging, _root_.com.typesafe.sbt.packager.docker.DockerPlugin, _root_.com.typesafe.sbt.packager.docker.DockerSpotifyClientPlugin, _root_.com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin, _root_.com.typesafe.sbt.packager.jdkpackager.JDKPackagerDeployPlugin, _root_.com.typesafe.sbt.packager.jdkpackager.JDKPackagerPlugin, _root_.com.typesafe.sbt.packager.linux.LinuxPlugin, _root_.com.typesafe.sbt.packager.rpm.RpmDeployPlugin, _root_.com.typesafe.sbt.packager.rpm.RpmPlugin, _root_.com.typesafe.sbt.packager.universal.UniversalDeployPlugin, _root_.com.typesafe.sbt.packager.universal.UniversalPlugin, _root_.com.typesafe.sbt.packager.windows.WindowsDeployPlugin, _root_.com.typesafe.sbt.packager.windows.WindowsPlugin, _root_.akka.grpc.sbt.AkkaGrpcPlugin, _root_.sbtprotoc.ProtocPlugin, _root_.org.portablescala.sbtplatformdeps.PlatformDepsPlugin, _root_.com.lightbend.sbt.javaagent.JavaAgent, _root_.com.lightbend.sbt.javaagent.JavaAgentPackaging, _root_.scala.xml.{TopScope=&amp;gt;SUB:DOLLARscope}" sbt.resolvers="https://repo1.maven.org/maven2/|maven|public, file:/Users/kuanyu/.sbt/preloaded/|maven|local-preloaded, /Users/kuanyu/.ivy2/cache|ivy|Local cache" type="SBT_MODULE" version="4">
   <component name="NewModuleRootManager">
     <output url="file://$MODULE_DIR$/../../project/target/idea-classes" />
     <output-test url="file://$MODULE_DIR$/../../project/target/idea-test-classes" />
@@ -14,6 +14,31 @@
     <orderEntry type="module-library">
       <library name="sbt: sbt-and-plugins">
         <CLASSES>
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.github.eldis/tool-launcher/jars/tool-launcher-0.2.2.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.github.os72/protoc-jar/jars/protoc-jar-3.7.1.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.google.protobuf/protobuf-java/bundles/protobuf-java-3.8.0.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.lightbend.akka.grpc/akka-grpc-codegen_2.12/jars/akka-grpc-codegen_2.12-0.7.3.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.lihaoyi/fastparse_2.12/jars/fastparse_2.12-2.1.3.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.lihaoyi/sourcecode_2.12/bundles/sourcecode_2.12-0.1.7.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.swoval/apple-file-events/jars/apple-file-events-1.3.2.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.thesamet.scalapb/compilerplugin_2.12/jars/compilerplugin_2.12-0.9.6.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.thesamet.scalapb/lenses_2.12/jars/lenses_2.12-0.9.6.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.thesamet.scalapb/protoc-bridge_2.12/jars/protoc-bridge_2.12-0.7.11.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.thesamet.scalapb/scalapb-runtime_2.12/jars/scalapb-runtime_2.12-0.9.6.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.play/twirl-api_2.12/jars/twirl-api_2.12-1.5.0.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/net.java.dev.jna/jna-platform/jars/jna-platform-4.5.0.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/net.java.dev.jna/jna/jars/jna-4.5.0.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.ant/ant-launcher/jars/ant-launcher-1.10.5.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.ant/ant/jars/ant-1.10.5.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-compress/jars/commons-compress-1.18.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang.modules/scala-parser-combinators_2.12/bundles/scala-parser-combinators_2.12-1.1.1.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang.modules/scala-xml_2.12/bundles/scala-xml_2.12-1.2.0.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-sbt/io_2.12/jars/io_2.12-1.2.2.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/scala_2.12/sbt_1.0/com.lightbend.akka.grpc/sbt-akka-grpc/jars/sbt-akka-grpc-0.7.3.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/scala_2.12/sbt_1.0/com.lightbend.sbt/sbt-javaagent/jars/sbt-javaagent-0.1.4.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/scala_2.12/sbt_1.0/com.thesamet/sbt-protoc/jars/sbt-protoc-0.99.26.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/scala_2.12/sbt_1.0/com.typesafe.sbt/sbt-native-packager/jars/sbt-native-packager-1.5.2.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/scala_2.12/sbt_1.0/org.portable-scala/sbt-platform-deps/jars/sbt-platform-deps-1.0.0.jar!/" />
           <root url="jar://$USER_HOME$/.sbt/boot/scala-2.12.6/lib/jline.jar!/" />
           <root url="jar://$USER_HOME$/.sbt/boot/scala-2.12.6/lib/scala-compiler.jar!/" />
           <root url="jar://$USER_HOME$/.sbt/boot/scala-2.12.6/lib/scala-library.jar!/" />
@@ -96,7 +121,10 @@
           <root url="jar://$USER_HOME$/.sbt/boot/scala-2.12.6/org.scala-sbt/sbt/1.1.6/zinc-persist_2.12-1.1.7.jar!/" />
           <root url="jar://$USER_HOME$/.sbt/boot/scala-2.12.6/org.scala-sbt/sbt/1.1.6/zinc_2.12-1.1.7.jar!/" />
         </CLASSES>
-        <JAVADOC />
+        <JAVADOC>
+          <root url="jar://$USER_HOME$/.ivy2/cache/scala_2.12/sbt_1.0/com.typesafe.sbt/sbt-native-packager/docs/sbt-native-packager-1.5.2-javadoc.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/scala_2.12/sbt_1.0/org.portable-scala/sbt-platform-deps/docs/sbt-platform-deps-1.0.0-javadoc.jar!/" />
+        </JAVADOC>
         <SOURCES>
           <root url="jar://$USER_HOME$/.ivy2/cache/com.eed3si9n/gigahorse-core_2.12/srcs/gigahorse-core_2.12-0.3.0-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.eed3si9n/gigahorse-okhttp_2.12/srcs/gigahorse-okhttp_2.12-0.3.0-sources.jar!/" />
@@ -107,29 +135,39 @@
           <root url="jar://$USER_HOME$/.ivy2/cache/com.github.ben-manes.caffeine/caffeine/srcs/caffeine-2.5.6-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.github.cb372/scalacache-caffeine_2.12/srcs/scalacache-caffeine_2.12-0.20.0-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.github.cb372/scalacache-core_2.12/srcs/scalacache-core_2.12-0.20.0-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.google.protobuf/protobuf-java/srcs/protobuf-java-3.3.1-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.github.eldis/tool-launcher/srcs/tool-launcher-0.2.2-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.github.os72/protoc-jar/srcs/protoc-jar-3.7.1-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.google.protobuf/protobuf-java/srcs/protobuf-java-3.8.0-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.jcraft/jsch/srcs/jsch-0.1.54-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.lihaoyi/fastparse-utils_2.12/srcs/fastparse-utils_2.12-0.4.2-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.lihaoyi/fastparse_2.12/srcs/fastparse_2.12-0.4.2-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/com.lihaoyi/sourcecode_2.12/srcs/sourcecode_2.12-0.1.3-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.lightbend.akka.grpc/akka-grpc-codegen_2.12/srcs/akka-grpc-codegen_2.12-0.7.3-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.lihaoyi/fastparse_2.12/srcs/fastparse_2.12-2.1.3-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.lihaoyi/sourcecode_2.12/srcs/sourcecode_2.12-0.1.7-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.lmax/disruptor/srcs/disruptor-3.3.6-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.squareup.okhttp3/okhttp-urlconnection/srcs/okhttp-urlconnection-3.7.0-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.squareup.okhttp3/okhttp/srcs/okhttp-3.7.0-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.squareup.okio/okio/srcs/okio-1.12.0-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.swoval/apple-file-events/srcs/apple-file-events-1.3.2-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.thesamet.scalapb/compilerplugin_2.12/srcs/compilerplugin_2.12-0.9.6-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.thesamet.scalapb/lenses_2.12/srcs/lenses_2.12-0.9.6-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.thesamet.scalapb/protoc-bridge_2.12/srcs/protoc-bridge_2.12-0.7.11-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.thesamet.scalapb/scalapb-runtime_2.12/srcs/scalapb-runtime_2.12-0.9.6-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.trueaccord.lenses/lenses_2.12/srcs/lenses_2.12-0.4.12-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.trueaccord.scalapb/scalapb-runtime_2.12/srcs/scalapb-runtime_2.12-0.6.0-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.play/twirl-api_2.12/srcs/twirl-api_2.12-1.5.0-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe/config/srcs/config-1.2.0-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe/ssl-config-core_2.12/srcs/ssl-config-core_2.12-0.2.2-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/jline/jline/srcs/jline-2.14.6-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/net.java.dev.jna/jna-platform/srcs/jna-platform-4.5.0-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/net.java.dev.jna/jna/srcs/jna-4.5.0-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.ant/ant-launcher/srcs/ant-launcher-1.10.5-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.ant/ant/srcs/ant-1.10.5-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-compress/srcs/commons-compress-1.18-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.logging.log4j/log4j-api/srcs/log4j-api-2.8.1-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.logging.log4j/log4j-core/srcs/log4j-core-2.8.1-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.logging.log4j/log4j-slf4j-impl/srcs/log4j-slf4j-impl-2.8.1-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.reactivestreams/reactive-streams/srcs/reactive-streams-1.0.0-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang.modules/scala-parser-combinators_2.12/srcs/scala-parser-combinators_2.12-1.0.5-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang.modules/scala-xml_2.12/srcs/scala-xml_2.12-1.0.6-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang.modules/scala-parser-combinators_2.12/srcs/scala-parser-combinators_2.12-1.1.1-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang.modules/scala-xml_2.12/srcs/scala-xml_2.12-1.2.0-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-compiler/srcs/scala-compiler-2.12.6-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-library/srcs/scala-library-2.12.6-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-lang/scala-reflect/srcs/scala-reflect-2.12.6-sources.jar!/" />
@@ -141,7 +179,7 @@
           <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-sbt/compiler-interface/srcs/compiler-interface-1.1.7-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-sbt/completion_2.12/srcs/completion_2.12-1.1.6-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-sbt/core-macros_2.12/srcs/core-macros_2.12-1.1.6-sources.jar!/" />
-          <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-sbt/io_2.12/srcs/io_2.12-1.1.10-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-sbt/io_2.12/srcs/io_2.12-1.2.2-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-sbt/launcher-interface/srcs/launcher-interface-1.0.4-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-sbt/librarymanagement-core_2.12/srcs/librarymanagement-core_2.12-1.1.5-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-sbt/librarymanagement-ivy_2.12/srcs/librarymanagement-ivy_2.12-1.1.5-sources.jar!/" />
@@ -176,12 +214,17 @@
           <root url="jar://$USER_HOME$/.ivy2/cache/org.scala-sbt/zinc_2.12/srcs/zinc_2.12-1.1.7-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-api/srcs/slf4j-api-1.7.25-sources.jar!/" />
           <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/jawn-parser_2.12/srcs/jawn-parser_2.12-0.10.4-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/scala_2.12/sbt_1.0/com.lightbend.akka.grpc/sbt-akka-grpc/srcs/sbt-akka-grpc-0.7.3-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/scala_2.12/sbt_1.0/com.lightbend.sbt/sbt-javaagent/srcs/sbt-javaagent-0.1.4-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/scala_2.12/sbt_1.0/com.thesamet/sbt-protoc/srcs/sbt-protoc-0.99.26-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/scala_2.12/sbt_1.0/com.typesafe.sbt/sbt-native-packager/srcs/sbt-native-packager-1.5.2-sources.jar!/" />
+          <root url="jar://$USER_HOME$/.ivy2/cache/scala_2.12/sbt_1.0/org.portable-scala/sbt-platform-deps/srcs/sbt-platform-deps-1.0.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
   </component>
   <component name="SbtModule">
     <option name="buildForURI" value="file:$MODULE_DIR$/../../" />
-    <option name="imports" value="_root_.sbt.Keys._, _root_.sbt._, _root_.sbt.plugins.IvyPlugin, _root_.sbt.plugins.JvmPlugin, _root_.sbt.plugins.CorePlugin, _root_.sbt.plugins.JUnitXmlReportPlugin, _root_.sbt.plugins.Giter8TemplatePlugin, _root_.scala.xml.{TopScope=&gt;SUB:DOLLARscope}" />
+    <option name="imports" value="_root_.com.typesafe.sbt.SbtNativePackager.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.JavaAppPackaging.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.jar.ClasspathJarPlugin.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.jar.LauncherJarPlugin.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.jlink.JlinkPlugin.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.scripts.BashStartScriptPlugin.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.scripts.BatStartScriptPlugin.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.systemloader.SystemdPlugin.autoImport._, _root_.com.typesafe.sbt.packager.archetypes.systemloader.SystemloaderPlugin.autoImport._, _root_.com.typesafe.sbt.packager.debian.DebianPlugin.autoImport._, _root_.com.typesafe.sbt.packager.docker.DockerPlugin.autoImport._, _root_.com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin.autoImport._, _root_.com.typesafe.sbt.packager.jdkpackager.JDKPackagerPlugin.autoImport._, _root_.com.typesafe.sbt.packager.linux.LinuxPlugin.autoImport._, _root_.com.typesafe.sbt.packager.rpm.RpmPlugin.autoImport._, _root_.com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._, _root_.com.typesafe.sbt.packager.windows.WindowsPlugin.autoImport._, _root_.akka.grpc.sbt.AkkaGrpcPlugin.autoImport._, _root_.sbtprotoc.ProtocPlugin.autoImport._, _root_.org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._, _root_.com.lightbend.sbt.javaagent.JavaAgent.autoImport._, _root_.sbt.Keys._, _root_.sbt._, _root_.sbt.plugins.IvyPlugin, _root_.sbt.plugins.JvmPlugin, _root_.sbt.plugins.CorePlugin, _root_.sbt.plugins.JUnitXmlReportPlugin, _root_.sbt.plugins.Giter8TemplatePlugin, _root_.com.typesafe.sbt.SbtNativePackager, _root_.com.typesafe.sbt.packager.archetypes.JavaAppPackaging, _root_.com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging, _root_.com.typesafe.sbt.packager.archetypes.jar.ClasspathJarPlugin, _root_.com.typesafe.sbt.packager.archetypes.jar.LauncherJarPlugin, _root_.com.typesafe.sbt.packager.archetypes.jlink.JlinkPlugin, _root_.com.typesafe.sbt.packager.archetypes.scripts.AshScriptPlugin, _root_.com.typesafe.sbt.packager.archetypes.scripts.BashStartScriptPlugin, _root_.com.typesafe.sbt.packager.archetypes.scripts.BatStartScriptPlugin, _root_.com.typesafe.sbt.packager.archetypes.systemloader.SystemVPlugin, _root_.com.typesafe.sbt.packager.archetypes.systemloader.SystemdPlugin, _root_.com.typesafe.sbt.packager.archetypes.systemloader.SystemloaderPlugin, _root_.com.typesafe.sbt.packager.archetypes.systemloader.UpstartPlugin, _root_.com.typesafe.sbt.packager.debian.DebianDeployPlugin, _root_.com.typesafe.sbt.packager.debian.DebianPlugin, _root_.com.typesafe.sbt.packager.debian.JDebPackaging, _root_.com.typesafe.sbt.packager.docker.DockerPlugin, _root_.com.typesafe.sbt.packager.docker.DockerSpotifyClientPlugin, _root_.com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin, _root_.com.typesafe.sbt.packager.jdkpackager.JDKPackagerDeployPlugin, _root_.com.typesafe.sbt.packager.jdkpackager.JDKPackagerPlugin, _root_.com.typesafe.sbt.packager.linux.LinuxPlugin, _root_.com.typesafe.sbt.packager.rpm.RpmDeployPlugin, _root_.com.typesafe.sbt.packager.rpm.RpmPlugin, _root_.com.typesafe.sbt.packager.universal.UniversalDeployPlugin, _root_.com.typesafe.sbt.packager.universal.UniversalPlugin, _root_.com.typesafe.sbt.packager.windows.WindowsDeployPlugin, _root_.com.typesafe.sbt.packager.windows.WindowsPlugin, _root_.akka.grpc.sbt.AkkaGrpcPlugin, _root_.sbtprotoc.ProtocPlugin, _root_.org.portablescala.sbtplatformdeps.PlatformDepsPlugin, _root_.com.lightbend.sbt.javaagent.JavaAgent, _root_.com.lightbend.sbt.javaagent.JavaAgentPackaging, _root_.scala.xml.{TopScope=&gt;SUB:DOLLARscope}" />
   </component>
 </module>
