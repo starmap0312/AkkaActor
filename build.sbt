@@ -14,6 +14,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-discovery" % akkaVersion,
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.+", // akka JSON marshaller Support
   "com.typesafe.akka" %% "akka-http"   % "10.+",
+  "com.typesafe.akka" %% "akka-http-caching" % "10.+", // to use CachingDirectives in route
   "org.jsoup" % "jsoup" % "1.8.3",
   "com.fasterxml.jackson.core" % "jackson-core" % "2.9.7",
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.7",

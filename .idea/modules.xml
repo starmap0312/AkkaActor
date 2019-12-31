@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/AkkaActor.iml" filepath="$PROJECT_DIR$/.idea/modules/AkkaActor.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/AkkaActor-build.iml" filepath="$PROJECT_DIR$/.idea/modules/AkkaActor-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/subProject.iml" filepath="$PROJECT_DIR$/.idea/modules/subProject.iml" />
     </modules>
   </component>
 </project>
