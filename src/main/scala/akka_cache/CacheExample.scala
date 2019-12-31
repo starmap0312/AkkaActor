@@ -18,7 +18,8 @@ object CacheExample extends App {
 
   // Created outside the route to allow using the same cache across multiple calls
   val myCache = routeCache[Uri]
-  // this creates an LfuCache with key type of Uri
+  // this creates an LfuCache (Least Frequently Used Cache) of Key type = Uri, with default setting
+  // to use cache with a different setting (ex. capacity/time-to-live): https://doc.akka.io/docs/akka-http/current/common/caching.html
 
   // Example keyer for GET requests
   val simpleKeyer: PartialFunction[RequestContext, Uri] = {
@@ -34,7 +35,7 @@ object CacheExample extends App {
       path("cached") {
         // cache([cache], [keyer]): serve the request from the given cache
         // if the key is not found, then run the inner route to generate a new response
-        // note: this returns the cache result for all "new-connection" requests
+        // note: return the cached response for all requests "if the request is from a new connection"
         cache(myCache, simpleKeyer) {
           complete {
             i += 1
@@ -43,7 +44,7 @@ object CacheExample extends App {
         }
       } ~
         path("alwaysCache") {
-          // note: this returns the cache result for all requests
+          // note: always return the cached response for all requests
           alwaysCache(myCache, simpleKeyer) {
             complete {
               j += 1
