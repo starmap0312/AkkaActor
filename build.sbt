@@ -12,13 +12,16 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
   "com.typesafe.akka" %% "akka-discovery" % akkaVersion,
+  "com.typesafe.akka" %% "akka-cluster" % akkaVersion, // to use classic Akka Cluster
+  "com.typesafe.akka" %% "akka-cluster-typed" % akkaVersion, // to use typed Akka Cluster
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.+", // akka JSON marshaller Support
   "com.typesafe.akka" %% "akka-http"   % "10.+",
   "com.typesafe.akka" %% "akka-http-caching" % "10.+", // to use CachingDirectives in route
   "org.jsoup" % "jsoup" % "1.8.3",
   "com.fasterxml.jackson.core" % "jackson-core" % "2.9.7",
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.7",
-  "org.slf4j" % "slf4j-api" % "1.7.+",
+  "org.slf4j" % "slf4j-api" % "1.7.+", // required if to use log.info(...) in ActorLogging
+  "org.slf4j" % "slf4j-simple" % "1.7.+", // required if to use log.info(...) in ActorLogging
   // packages for testing
   //"junit" % "junit" % "4.11" % "test",
   "org.scalatest" %% "scalatest" % "3.+" % Test,

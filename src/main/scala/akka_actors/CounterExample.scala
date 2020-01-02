@@ -2,6 +2,8 @@ package akka_actors
 
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 
+import scala.io.StdIn
+
 // 1) Actor class:
 //
 //    trait Actor {
@@ -27,11 +29,18 @@ import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 //    }
 object CounterExample extends App {
 
-  class Counter extends Actor {
+  class Counter extends Actor with ActorLogging {
     var count = 0
     override def receive: Receive = {
-      case "increment" => count += 1
-      case "get" => sender ! count
+      case "increment" => {
+        log.info("actor Counter recevies increment") // INFO akka_actors.CounterExample$Counter - actor Counter recevies increment
+        count += 1
+      }
+      case "get" => {
+        log.debug("debug message") // INFO akka_actors.CounterExample$Counter - actor Counter recevies get
+        log.info("actor Counter recevies get") // INFO akka_actors.CounterExample$Counter - actor Counter recevies get
+        sender ! count
+      }
     }
   }
 
@@ -45,13 +54,14 @@ object CounterExample extends App {
 
     override def receive: Receive = {
       case count: Int => {
-        log.debug("count={}", count) // [DEBUG] [07/22/2018 15:42:38.645] [akka://CounterExample/user/printer] count=3
+        log.info("count={}", count) // [DEBUG] [07/22/2018 15:42:38.645] [akka://CounterExample/user/printer] count=3
         context.stop(self)
       }
     }
   }
 
   val system = ActorSystem("CounterExample")
-  system.actorOf(Props[Printer], "printer") // count=3
+  val actorRef = system.actorOf(Props[Printer], "printer") // count=3
+  StdIn.readLine()
   system.terminate()
 }
