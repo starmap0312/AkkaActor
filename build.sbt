@@ -12,8 +12,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
   "com.typesafe.akka" %% "akka-discovery" % akkaVersion,
-  "com.typesafe.akka" %% "akka-cluster" % akkaVersion, // to use classic Akka Cluster
-  "com.typesafe.akka" %% "akka-cluster-typed" % akkaVersion, // to use typed Akka Cluster
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.+", // akka JSON marshaller Support
   "com.typesafe.akka" %% "akka-http"   % "10.+",
   "com.typesafe.akka" %% "akka-http-caching" % "10.+", // to use CachingDirectives in route
