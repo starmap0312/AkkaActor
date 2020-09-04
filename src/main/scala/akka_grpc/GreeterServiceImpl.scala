@@ -13,18 +13,18 @@ class GreeterServiceImpl(implicit mat: Materializer) extends GreeterService {
   import mat.executionContext
 
   override def sayHello(in: HelloRequest): Future[HelloReply] = {
-    println(s"sayHello to ${in.name}")
+    println(s"sayHello to ${in.name} with fields ${in.fields}")
     Future.successful(HelloReply(s"Hello, ${in.name}"))
   }
 
   override def itKeepsTalking(in: Source[HelloRequest, NotUsed]): Future[HelloReply] = {
     println(s"sayHello to in stream...")
-    in.runWith(Sink.seq).map(elements => HelloReply(s"Hello, ${elements.map(_.name).mkString(", ")}"))
+    in.runWith(Sink.seq).map(elements => HelloReply(s"Hello, ${elements.map(_.name).mkString(", ")} with fields ${elements.map(_.fields.mkString).mkString(", ")}"))
   }
 
   override def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
     println(s"sayHello to ${in.name} with stream of chars...")
-    Source(s"Hello, ${in.name}".toList).map(character => HelloReply(character.toString))
+    Source(s"Hello, ${in.name} with ${in.fields}".toList).map(character => HelloReply(character.toString))
   }
 
   override def streamHellos(in: Source[HelloRequest, NotUsed]): Source[HelloReply, NotUsed] = {

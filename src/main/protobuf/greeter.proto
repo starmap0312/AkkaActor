@@ -5,7 +5,7 @@ option java_multiple_files = true;
 option java_package = "akka_grpc";
 option java_outer_classname = "HelloWorldProto";
 // the generated code will be in package akka_grpc
-// i.e. sbt compile generates: target/scala-2.12/src_managed/main/akka_grpc/GreeterService.scala, HelloRequest.scala, etc.
+// i.e. run "sbt compile" to generate: target/scala-2.12/src_managed/main/akka_grpc/GreeterService.scala, HelloRequest.scala, etc.
 
 package helloworld;
 //#options
@@ -45,9 +45,14 @@ service GreeterService {
 // }
 
 //#messages
+message Fields {
+    string field1 = 1;
+    string field2 = 2;
+}
 // The request message containing the user's name.
 message HelloRequest {
     string name = 1;
+    Fields fields = 2;
 }
 
 // The response message containing the greetings

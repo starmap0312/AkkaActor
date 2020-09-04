@@ -39,7 +39,7 @@ object GreeterClient {
 
     def runSingleRequestReplyExample(): Unit = {
       sys.log.info("Performing request")
-      val reply = client.sayHello(HelloRequest("Alice"))
+      val reply = client.sayHello(HelloRequest("Alice", None))
       reply.onComplete {
         case Success(msg) =>
           println(s"got single reply: $msg")
@@ -49,7 +49,7 @@ object GreeterClient {
     }
 
     def runStreamingRequestExample(): Unit = {
-      val requests = List("Alice", "Bob", "Peter").map(HelloRequest.apply)
+      val requests = List("Alice", "Bob", "Peter").map(HelloRequest.apply(_, Some(Fields("value1", "value2"))))
       val reply = client.itKeepsTalking(Source(requests))
       reply.onComplete {
         case Success(msg) =>
@@ -60,7 +60,7 @@ object GreeterClient {
     }
 
     def runStreamingReplyExample(): Unit = {
-      val responseStream = client.itKeepsReplying(HelloRequest("Alice"))
+      val responseStream = client.itKeepsReplying(HelloRequest("Alice", Some(Fields("value1", "value2"))))
       val done: Future[Done] =
         responseStream.runForeach(reply => println(s"got streaming reply: ${reply.message}"))
 
@@ -78,7 +78,7 @@ object GreeterClient {
           .tick(100.millis, 1.second, "tick")
           .zipWithIndex
           .map { case (_, i) => i }
-          .map(i => HelloRequest(s"Alice-$i"))
+          .map(i => HelloRequest(s"Alice-$i", None))
           .take(10)
           .mapMaterializedValue(_ => NotUsed)
 
