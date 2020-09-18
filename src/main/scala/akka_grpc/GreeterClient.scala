@@ -46,6 +46,13 @@ object GreeterClient {
         case Failure(e) =>
           println(s"Error sayHello: $e")
       }
+      val reply2 = client.sayHello(HelloRequest("Alice2")) // parameters are optional by defaul
+      reply2.onComplete {
+        case Success(msg) =>
+          println(s"got single reply: $msg")
+        case Failure(e) =>
+          println(s"Error sayHello: $e")
+      }
     }
 
     def runStreamingRequestExample(): Unit = {
