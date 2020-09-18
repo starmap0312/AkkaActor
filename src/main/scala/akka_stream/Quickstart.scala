@@ -18,7 +18,7 @@ import scala.util.{Failure, Random, Success}
 // Reactive Streams:
 // 1) Akka Streams implements the Reactive Streams specification
 // 2) Reactive Streams' main goals:
-//    i) backpressure
+//    i) back-pressure
 //   ii) async and non-blocking boundaries
 //  iii) interoperability between different implementations
 
@@ -29,7 +29,7 @@ import scala.util.{Failure, Random, Success}
 // 2) Akka Streams vs. Actor Model:
 //    in Actor Model, each actor has an "unbounded"/"dropping" mailbox
 //    in Akka Streams, processing entities have a "bounded" mailbox (never dropping)
-//      it uses back-pressure to control the flow instead
+//      it uses "back-pressure" to control the flow instead
 
 object Quickstart extends App {
   implicit val system = ActorSystem("QuickStart")
@@ -38,11 +38,11 @@ object Quickstart extends App {
   // "implicit" makes compiler be able to inject these dependencies automatically whenever they are needed
 
   // 1) Source:       a data creator, a Source is a description of the source you want to run, which can be transformed
-  // 2) Flow:         a data connector used to transform elements, a Flow is a processing stage which has exactly one input and output
+  // 2) Flow:         a data connector used to transform elements, a Flow is a processing stage which has exactly "one input" and "one output"
   //                  it connects its up- and downstreams by transforming the data elements flowing through it
   //    ex. if a Flow is connected to a Source, it results in a new Source
   //        if a Flow is connected to a Sink,   it results in a new Sink
-  //        if a Flow is connected with both a Source and a Sink, it results in a RunnableFlow
+  //        if a Flow is connected with both a Source and a Sink, it results in a "RunnableFlow" (i.e. a Flow that can be run())
   // 3) Sink:         a data consumer, a Sink is a set of stream processing steps that has one open input. it can be used as a Subscriber
   // 4) Materializer: a Materializer is a factory for stream execution engines, it is the thing that makes streams run
   //                    i.e. you need it for calling any of the run methods on a Source
@@ -65,12 +65,15 @@ object Quickstart extends App {
   //}
   // 2) runWith([Sink]): connecting this Source to a Sink and run it (and returns the auxiliary materialized value)
   val printSink: Sink[Int, Future[Done]] = Sink.foreach[Int](num => println(num)) // the source has an auxiliary materialized value of Future[Done] that can be used to check if the running stream is DONE
-  val matValue2: Future[Done] = source.runWith(printSink)
+  val matValue2: Future[Done] = source.runWith(printSink) // runWith([Sink]): materialize the flow and get the Sink's materialized value
 
   // 3) source.toMat([sink]): connects a Source with a Sink while determining to keep the auxiliary (materialized) value of either Source or Sink
+  //    toMat(): transform the materialized value of the source and sink
   val stream1: RunnableGraph[NotUsed] = source.toMat(printSink)(Keep.left) // keep the Source's auxiliary (materialized) value (ex. NotUsed)
+  //  Keep.left: we are only interested in the materialized value of the source
   val matValue1_1: NotUsed = stream1.run()
   val stream2: RunnableGraph[Future[Done]] = source.toMat(printSink)(Keep.right) // keep the Sink's auxiliary (materialized) value (ex. Future[Done])
+  //  Keep.right: we are only interested in the materialized value of the sink
   val matValue1_2: Future[Done] = stream2.run()
 
   // 4) Source.to([Sink]): this produces a RunnableFlow, i.e. a special form of a Flow, with one input and one output
