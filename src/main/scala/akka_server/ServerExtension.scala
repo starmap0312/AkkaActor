@@ -10,7 +10,6 @@ import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.duration._
 
-// HttpServerActor: the actual actor that runs the http service
 object ServerActor {
   case object StartServer
   case object StopServer
@@ -22,6 +21,7 @@ object ServerActor {
     }
   }
 }
+// HttpServerActor: the actual actor that runs the http service
 class ServerActor() extends Actor {
   implicit val system = context.system
   import system.dispatcher
@@ -31,7 +31,7 @@ class ServerActor() extends Actor {
   def receive = {
     case StartServer => // the actor is waiting for StartServer message
       val s: ActorRef = sender()
-      val bindFuture = Http().bindAndHandle(route, "localhost", 9001)
+      val bindFuture = Http().bindAndHandle(route, "localhost", 9001) // once the actor receives the message, it binds to a local port and handles the defined route
       bindFuture.onComplete(x => s ! x)
       context.become { // when the server starts, the actor becomes to wait for StopServer message
         case StopServer =>
@@ -48,6 +48,9 @@ object ServerExtensionImpl extends ExtensionId[ServerExtension] with ExtensionId
   override def createExtension(system: ExtendedActorSystem): ServerExtension = new ServerExtension()(system) // called by Akka to instantiate our Extension
 }
 
+// define a class that can start() an ServerActor, i.e. instantiate a ServerActor and send a StartServer message to it
+// note that we define the class as an akka Extension, which will then be "loaded once" per ActorSystem (a shared instance in within an ActorSystem) and managed by Akka
+// in other words,
 class ServerExtension()(implicit val system: ExtendedActorSystem) extends akka.actor.Extension {
   implicit val timeout = Timeout(10.second)
   def start() = {
