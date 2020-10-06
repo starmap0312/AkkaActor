@@ -61,7 +61,7 @@ class ServerExtension()(implicit val system: ExtendedActorSystem) extends akka.a
 
 object SimpleServer {
   implicit val system = ActorSystem("SimpleServer")
-  val serverExtension = ServerExtensionImpl(system)
+  val serverExtension = ServerExtensionImpl(system) // the extension Implementation is tied to a single ActorSystem, shared within that ActorSystem
 
   def main(args: Array[String]): Unit = {
     // http://127.0.0.1:9001/hello

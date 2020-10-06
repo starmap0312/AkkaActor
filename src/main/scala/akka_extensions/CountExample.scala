@@ -37,8 +37,7 @@ object CountExample extends App {
   CountExtensionImpl.get(system) // a CountExtension singleton is instantiated and shared within the system
   CountExtensionImpl.get(system) // no more CountExtension is instantiated
   println(CountExtensionImpl(system).increment) // 1
-  // note you don't need to call the above get() to instantiate the Extension, you can simply call increment() and
-  //   the method createExtension() will be called by Akka to instantiate our Extension
+  // note you don't need to call the above get() to instantiate the Extension, you can simply use CountExtensionImpl(system) that is tied to a single ActorSystem, shared within that ActorSystem
   println(CountExtensionImpl(system).increment) // 2
   system.terminate()
 }
