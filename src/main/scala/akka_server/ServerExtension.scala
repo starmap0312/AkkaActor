@@ -31,6 +31,7 @@ class ServerActor() extends Actor {
   def receive = {
     case StartServer => // the actor is waiting for StartServer message
       val s: ActorRef = sender()
+      println("StartServer: bindAndHandle: http://localhost:9001/hello")
       val bindFuture = Http().bindAndHandle(route, "localhost", 9001) // once the actor receives the message, it binds to a local port and handles the defined route
       bindFuture.onComplete(x => s ! x)
       context.become { // when the server starts, the actor becomes to wait for StopServer message
@@ -66,5 +67,6 @@ object SimpleServer {
   def main(args: Array[String]): Unit = {
     // http://127.0.0.1:9001/hello
     serverExtension.start()
+    // serverExtension.start() // you cannot run the server twice: Exception InvalidActorNameException: actor name [server-actor] is not unique
   }
 }
