@@ -1,6 +1,8 @@
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
 
 import scala.concurrent.duration._
 
@@ -20,12 +22,9 @@ class Toggle extends Actor {
   override def receive: Receive = happy
 }
 
-class TestProbe extends TestKit(ActorSystem("TestProbe")) with FlatSpecLike with BeforeAndAfterAll {
+class TestProbe extends AnyFlatSpec with should.Matchers {
+  implicit val system = ActorSystem("TestProbe")
   // the test class has a ActorSystem, i.e. system, as its constructor parameter
-
-  override def afterAll(): Unit = { // as the class extends BeforeAndAfterAll, we can specify what to do after all tests
-    system.terminate()
-  }
 
   "A TestProbe" can "interact with an Actor by sending and expecting messages" in {
     val toggle = system.actorOf(Props[Toggle], "toggle")

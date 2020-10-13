@@ -5,7 +5,8 @@ import akka.pattern.pipe
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.testkit.{TestKit, TestProbe}
-import org.scalatest.{BeforeAndAfterAll, FlatSpecLike}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
 
 import scala.concurrent.duration._
 import scala.util.Failure
@@ -146,21 +147,19 @@ class FileWorker() extends Actor with ActorLogging {
 }
 // other dangerous tasks: ex. validation, rate limitation, access control, etc.
 
-class ActorComposition extends TestKit(ActorSystem("TestProbe")) with FlatSpecLike with BeforeAndAfterAll {
+class ActorComposition extends AnyFlatSpec with should.Matchers {
+  implicit val system = ActorSystem("TestProbe")
   // the test class has a ActorSystem, i.e. system, as its constructor parameter
 
-  override def afterAll(): Unit = { // as the class extends BeforeAndAfterAll, we can specify what to do after all tests
-    system.terminate()
-  }
 
-  "In the Customer Pattern, one" can "define an actor to forward message to another actor" in {
+  "In the Customer Pattern, one" should "define an actor to forward message to another actor" in {
     val receiver = system.actorOf(Props[Receiver], name = "receiver")
     val auditor = system.actorOf(Auditor.props(receiver), name = "auditor")
     val probe = TestProbe(name = "testProbe")
     probe.send(auditor, "hi")
   }
 
-  "In the Ask Pattern, one" can "ask an actor for some message and pipeTo the original sender" in {
+  "In the Ask Pattern, one" should "ask an actor for some message and pipeTo the original sender" in {
     val mailService = system.actorOf(Props[MailService], name = "mailService")
     val postOffice = system.actorOf(PostOffice.props(mailService), name = "postOffice")
     val user = TestProbe(name = "user")
@@ -168,7 +167,7 @@ class ActorComposition extends TestKit(ActorSystem("TestProbe")) with FlatSpecLi
     user.expectMsg(List("mail2"))
   }
 
-  "In the Aggregate Pattern, one" can "ask multiple actors for messages and pipeTo the original sender" in {
+  "In the Aggregate Pattern, one" should "ask multiple actors for messages and pipeTo the original sender" in {
     val mailService = system.actorOf(Props[MailService], name = "mailService2")
     val postOffice = system.actorOf(PostOffice.props(mailService), name = "postOffice2")
     val user = TestProbe(name = "user")

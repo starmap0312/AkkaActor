@@ -2,6 +2,8 @@ import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props, Terminated
 import akka.routing._
 import org.scalatest._
 import akka.testkit.{TestKit, TestProbe}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should
 
 // 1) A Simple Router: created inside an actor explicitly, specifying the routing logic & managing routees by code
 class Worker extends Actor with ActorLogging {
@@ -67,11 +69,9 @@ class Master2 extends Actor {
   }
 }
 
-class Routing extends TestKit(ActorSystem("Routing")) with FlatSpecLike with BeforeAndAfterAll {
+class Routing extends AnyFlatSpec with should.Matchers {
 
-  override def afterAll(): Unit = { // as the class extends BeforeAndAfterAll, we can specify what to do after all tests
-    system.terminate()
-  }
+  implicit val system = ActorSystem("Routing")
 
   "Create a Router inside an actor which" can "be used to send/route messages to Routees" in {
     val master = system.actorOf(Props[Master], name = "master")

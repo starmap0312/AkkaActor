@@ -4,10 +4,11 @@ import akka.testkit.{TestKit, TestProbe}
 import akka.util.Timeout
 import akka.pattern.ask
 import akka.pattern.pipe
-
+import org.scalatest.flatspec.AnyFlatSpec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import org.scalatest.{BeforeAndAfterAll, FlatSpecLike}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should
 
 class UserService2 extends Actor {
   val info = Map("john" -> 23, "tom" -> 30)
@@ -40,11 +41,8 @@ class Retriever(userService: ActorRef) extends Actor with ActorLogging {
   }
 }
 
-class Responsiveness extends TestKit(ActorSystem("Responsiveness")) with FlatSpecLike with BeforeAndAfterAll {
-
-  override def afterAll(): Unit = { // as the class extends BeforeAndAfterAll, we can specify what to do after all tests
-    system.terminate()
-  }
+class Responsiveness extends AnyFlatSpec with should.Matchers {
+  implicit val system = ActorSystem("Responsiveness")
 
   "Circuit Breaker" can "be used to provide resilience for overloaded systems" in {
     val retriever = system.actorOf(Retriever.props(), "retriever")
