@@ -1,24 +1,33 @@
 package akka_extensions
 
 import java.util.concurrent.atomic.AtomicLong
+
 import akka.actor.Extension
 import akka.actor.ActorSystem
 import akka.actor.ExtensionId
 import akka.actor.ExtensionIdProvider
 import akka.actor.ExtendedActorSystem
+import org.slf4j.LoggerFactory
 
 // If you want to add features to Akka, define ExtensionId class with its implementation
 // Extensions will only be "loaded once" per ActorSystem (a shared instance in within an ActorSystem) and managed by Akka
 class CountExtensionImpl extends Extension {
+  val logger = LoggerFactory.getLogger(getClass.getName)
+  logger.info("CountExtensionImpl is instantiated")
+  println("CountExtensionImpl is instantiated")
+
   //Since this Extension is a shared instance per ActorSystem we need to be thread-safe
   private val counter = new AtomicLong(0)
 
   //This is the operation this Extension provides
   def increment() = counter.incrementAndGet()
-  println("CountExtension is instantiated")
 }
 
 object CountExtension extends ExtensionId[CountExtensionImpl] with ExtensionIdProvider {
+  val logger = LoggerFactory.getLogger(getClass.getName)
+  logger.info("CountExtension is instantiated")
+  println("CountExtension is instantiated")
+
   //The lookup method is required by ExtensionIdProvider, so we return ourselves here
   // loaded through Akka configuration: this allows us to configure our extension to be loaded when the ActorSystem starts up
   override def lookup = CountExtension
@@ -45,11 +54,11 @@ object CountExample extends App {
   system.terminate()
 
   // 2) loaded at ActorSystem creation time through the Akka configuration
-  //    ex. in akka.extensions = ["akka_extensions.CountExtension"]
+  //    ex. akka.extensions = ["akka_extensions.CountExtension"]
 
   // 3) Library extensions:
   // in its reference.conf: a third part library may register it’s extension for auto-loading on actor system startup
   // ex. akka.library-extensions += "akka_extensions.CountExtension"
-  // note: there is no way to selectively remove such extensions, so this is for the user would ever want it disabled, ex. in tests
+  // note: there is no way to selectively remove such extensions, so this is only for the user would ever want it disabled, ex. in tests
 
 }

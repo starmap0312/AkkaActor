@@ -67,3 +67,15 @@ lazy val subProject = (project in file("subproject"))
 lazy val mainProject = (project in file(".")).dependsOn(subProject)
 // in akkaactor.akkaactor-0.1.jar, it will include subproject.subproject-0.2.jar
 // therefore, you can use any classes/objects/packages defined in the subproject in your main project
+
+
+// 1) sbt run:
+//    if there are multiple main classes detected, you need to select one to run, ex.
+//      [1] Akkaactor
+//      [2] ComposableFuturesWithAkka
+//      [3] akka_actors.ActorTimeout
+//    unless you specify the main class to run here:
+Compile / mainClass := Some("Akkaactor")
+// 2) sbt "project subProject" run
+//    run the sub-project
+//
