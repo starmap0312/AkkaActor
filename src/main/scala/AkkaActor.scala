@@ -7,6 +7,7 @@ object Akkaactor extends App {
   logger.debug("Debug message")
   logger.info("Default executable for docker image") // [main] INFO Akkaactor$ - Default executable for docker image
 
+  // note: it is required instantiate an ActorSystem to create the CountExtension
   val system = ActorSystem("akaactor", ConfigFactory.load())
   println("an ActorSystem is instantiated")
   system.terminate()
