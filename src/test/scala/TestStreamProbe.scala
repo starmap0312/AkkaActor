@@ -1,4 +1,4 @@
-import akka.{Done, NotUsed, testkit}
+import akka.{Done, NotUsed, pattern, testkit}
 import akka.actor.{ActorRef, ActorSystem, Cancellable}
 import akka.stream.{CompletionStrategy, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, Keep, RunnableGraph, Sink, Source}
@@ -107,6 +107,26 @@ class TestStreamProbe extends AnyFlatSpec with should.Matchers {
 
     val result = Await.result(future.failed, 3.seconds)
     assert(result.getMessage == "boom")
+
+    // 4) Use TestSource & TestSink to test a Flow
+    import system.dispatcher
+    val flowUnderTest: Flow[Int, Int, NotUsed] = Flow[Int].mapAsyncUnordered(2) { sleep =>
+      pattern.after(10.millis * sleep, using = system.scheduler)(Future.successful(sleep))
+    }
+    val source4: Source[Int, TestPublisher.Probe[Int]] = TestSource.probe[Int]
+    val sink4: Sink[Int, TestSubscriber.Probe[Int]] = TestSink.probe[Int]
+
+    val (pub: TestPublisher.Probe[Int], sub: TestSubscriber.Probe[Int]) = source4.via(flowUnderTest).toMat(sink4)(Keep.both).run()
+
+    sub.request(n = 3)
+    pub.sendNext(3)
+    pub.sendNext(2)
+    pub.sendNext(1)
+    sub.expectNextUnordered(1, 2, 3)
+
+    pub.sendError(new Exception("Power surge in the linear subroutine C-47!"))
+    val ex = sub.expectError()
+    assert(ex.getMessage.contains("C-47"))
   }
 
 }
