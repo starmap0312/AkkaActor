@@ -2,8 +2,10 @@ package akka_stream
 
 import akka.{Done, NotUsed}
 import akka.actor.{Actor, ActorRef, ActorSystem}
-import akka.stream.{ActorMaterializer, CompletionStrategy, Materializer, OverflowStrategy}
+import akka.stream.Attributes.LogLevels
+import akka.stream._
 import akka.stream.scaladsl.{Flow, Keep, RunnableGraph, Sink, Source}
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.{Await, Future, Promise}
 import scala.concurrent.duration._
@@ -231,4 +233,18 @@ object Basics extends App {
       case "boom" => context.stop(self) // will NOT terminate the stream, as it's bound to the system!
     }
   }
+
+  // 12) Flow.log():
+  //     Logs elements flowing through the stream as well as completion and erroring
+  val log = LoggerFactory.getLogger(this.getClass)
+  val verboseAttribute = Attributes(LogLevels(LogLevels.Info, LogLevels.Info, LogLevels.Info))
+
+  val source12: Source[Int, NotUsed] = Source(1 to 3)
+  val flow12: Flow[Int, Int, NotUsed] = Flow[Int].map(_ * 2)
+  val sink12: Sink[Int, Future[Done]] = Sink.ignore
+  val runnable12: RunnableGraph[NotUsed] = source6_1.via(flow6_1).log("test12", x => s"${x}").addAttributes(verboseAttribute).to(sink12)
+  // [INFO] [test12] Element: 2
+  // [INFO] [test12] Element: 4
+  // [INFO] [test12] Element: 8
+  println(runnable12.run()) // NotUsed, with side effect of printing out 2, 4, 6
 }

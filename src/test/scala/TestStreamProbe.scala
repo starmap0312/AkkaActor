@@ -86,24 +86,24 @@ class TestStreamProbe extends AnyFlatSpec with should.Matchers {
     // 1) TestSink: create a Sink that can be materialized as a Probe that expects messages from the Source under test
     val sourceUnderTest: Source[Int, NotUsed] = Source(1 to 4).filter(_ % 2 == 0).map(_ * 2) // (2 * 2), (4 * 2), i.e. 4, 8
     val sink1: Sink[Int, TestSubscriber.Probe[Int]] = TestSink.probe[Int]
-    val probe1: TestSubscriber.Probe[Int] = sourceUnderTest.runWith(sink1)
-    probe1.request(2).expectNext(4, 8).expectComplete()
-    // request(2): Subscription.request(2), No events will be sent by a Publisher until demanded (i.e. request)
+    val subscriber1: TestSubscriber.Probe[Int] = sourceUnderTest.runWith(sink1)
+    subscriber1.request(2).expectNext(4, 8).expectComplete()
+    // request(2): note: No events will be sent by a Publisher until subscriber demands them by the request method
 
     // 2) TestSource: create a Source that can be materialized as a Probe that sends messages to the Sink under test
     val sinkUnderTest2: Sink[Any, NotUsed] = Sink.cancelled
     val source2: Source[Int, TestPublisher.Probe[Int]] = TestSource.probe[Int]
 
-    val probe2: TestPublisher.Probe[Int] = source2.toMat(sinkUnderTest2)(Keep.left).run()
-    probe2.expectCancellation()
+    val publisher2: TestPublisher.Probe[Int] = source2.toMat(sinkUnderTest2)(Keep.left).run()
+    publisher2.expectCancellation()
 
     // 3) TestSource: create a Source that can be materialized as a Probe that sends messages to the Sink under test
     val sinkUnderTest3: Sink[Int, Future[Int]] = Sink.head[Int]
     val source3: Source[Int, TestPublisher.Probe[Int]] = TestSource.probe[Int]
     val runnable2: RunnableGraph[(TestPublisher.Probe[Int], Future[Int])] = source3.toMat(sinkUnderTest3)(Keep.both)
 
-    val (probe3: TestPublisher.Probe[Int], future: Future[Int]) = runnable2.run()
-    probe3.sendError(new Exception("boom"))
+    val (publisher3: TestPublisher.Probe[Int], future: Future[Int]) = runnable2.run()
+    publisher3.sendError(new Exception("boom"))
 
     val result = Await.result(future.failed, 3.seconds)
     assert(result.getMessage == "boom")
@@ -116,16 +116,16 @@ class TestStreamProbe extends AnyFlatSpec with should.Matchers {
     val source4: Source[Int, TestPublisher.Probe[Int]] = TestSource.probe[Int]
     val sink4: Sink[Int, TestSubscriber.Probe[Int]] = TestSink.probe[Int]
 
-    val (pub: TestPublisher.Probe[Int], sub: TestSubscriber.Probe[Int]) = source4.via(flowUnderTest).toMat(sink4)(Keep.both).run()
+    val (publisher4: TestPublisher.Probe[Int], subscriber4: TestSubscriber.Probe[Int]) = source4.via(flowUnderTest).toMat(sink4)(Keep.both).run()
 
-    sub.request(n = 3)
-    pub.sendNext(3)
-    pub.sendNext(2)
-    pub.sendNext(1)
-    sub.expectNextUnordered(1, 2, 3)
+    subscriber4.request(n = 3) // note: no events will be triggered until subscriber demands them
+    publisher4.sendNext(3)
+    publisher4.sendNext(2)
+    publisher4.sendNext(1)
+    subscriber4.expectNextUnordered(1, 2, 3)
 
-    pub.sendError(new Exception("Power surge in the linear subroutine C-47!"))
-    val ex = sub.expectError()
+    publisher4.sendError(new Exception("Power surge in the linear subroutine C-47!"))
+    val ex = subscriber4.expectError()
     assert(ex.getMessage.contains("C-47"))
   }
 
