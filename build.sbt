@@ -25,6 +25,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.+" % Test,
   "org.scalacheck" %% "scalacheck" % "1.+" % Test,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
+  "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test, // to test akka stream, ex. SourceProbe
 )
 // sbt packageBin:
 //   this creates the package ./target/scala-2.12/akkaactor_2.12-0.1.jar

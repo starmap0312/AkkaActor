@@ -1,6 +1,5 @@
 import akka.actor.{Actor, ActorSystem, Props}
-import akka.testkit.{TestKit, TestProbe}
-import org.scalatest._
+import akka.testkit.TestProbe
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
