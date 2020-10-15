@@ -4,7 +4,7 @@ import akka.{Done, NotUsed}
 import akka.actor.{Actor, ActorRef, ActorSystem}
 import akka.stream.Attributes.LogLevels
 import akka.stream._
-import akka.stream.scaladsl.{Flow, Keep, RunnableGraph, Sink, Source}
+import akka.stream.scaladsl.{Flow, Keep, RunnableGraph, Sink, Source, SourceQueueWithComplete}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{Await, Future, Promise}
@@ -234,17 +234,33 @@ object Basics extends App {
     }
   }
 
-  // 12) Flow.log():
+  // 13) Flow.log():
   //     Logs elements flowing through the stream as well as completion and erroring
   val log = LoggerFactory.getLogger(this.getClass)
   val verboseAttribute = Attributes(LogLevels(LogLevels.Info, LogLevels.Info, LogLevels.Info))
 
-  val source12: Source[Int, NotUsed] = Source(1 to 3)
-  val flow12: Flow[Int, Int, NotUsed] = Flow[Int].map(_ * 2)
-  val sink12: Sink[Int, Future[Done]] = Sink.ignore
-  val runnable12: RunnableGraph[NotUsed] = source6_1.via(flow6_1).log("test12", x => s"${x}").addAttributes(verboseAttribute).to(sink12)
+  val source13: Source[Int, NotUsed] = Source(1 to 3)
+  val flow13: Flow[Int, Int, NotUsed] = Flow[Int].map(_ * 2)
+  val sink13: Sink[Int, Future[Done]] = Sink.ignore
+  val runnable13: RunnableGraph[NotUsed] = source13.via(flow13).log("test12", x => s"${x}").addAttributes(verboseAttribute).to(sink13)
   // [INFO] [test12] Element: 2
   // [INFO] [test12] Element: 4
-  // [INFO] [test12] Element: 8
-  println(runnable12.run()) // NotUsed, with side effect of printing out 2, 4, 6
+  // [INFO] [test12] Element: 6
+  println(runnable13.run()) // NotUsed, with side effect of printing out 2, 4, 6
+
+  // 14) Source.preMaterialize():
+  //     Materializes this Source, immediately returning:
+  //     (a) its materialized value (ex. SourceQueue), and
+  //     (b) a new Source that can be used to consume elements from the newly materialized Source
+  val (queue14: SourceQueueWithComplete[Int], source14: Source[Int, NotUsed]) = Source.queue[Int](3, OverflowStrategy.backpressure).preMaterialize()
+  val matValue: Future[Done] =
+    Source(1 to 3) // Int
+      .via(Flow[Int].map(x => {println(x); x})) // print 1, 2, 3
+      .mapAsync(1)(num => queue14.offer(num * 2))
+      .run()
+
+  Thread.sleep(1000)
+  source14.to(Sink.foreach(println(_))).run() // print 2, 4, 6
+
+  system.terminate()
 }
