@@ -254,13 +254,13 @@ object Basics extends App {
   //     (b) a new Source that can be used to consume elements from the newly materialized Source
   val (queue14: SourceQueueWithComplete[Int], source14: Source[Int, NotUsed]) = Source.queue[Int](3, OverflowStrategy.backpressure).preMaterialize()
   val matValue: Future[Done] =
-    Source(1 to 3) // Int
+    Source(1 to 3) // use another Int Source to offer elements to queue14
       .via(Flow[Int].map(x => {println(x); x})) // print 1, 2, 3
       .mapAsync(1)(num => queue14.offer(num * 2))
       .run()
 
   Thread.sleep(1000)
-  source14.to(Sink.foreach(println(_))).run() // print 2, 4, 6
+  source14.to(Sink.foreach(println(_))).run() // print 2, 4, 6, the preMaterialized source takes elements from the queue14.offer
 
   system.terminate()
 }
