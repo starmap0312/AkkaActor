@@ -22,7 +22,7 @@ object SourceQueueExample extends App {
       .throttle(elements = 1, 3.seconds) // control the rate of the Source to be: at most 1 elements per 3 seconds (a slow downstream)
   val queue: SourceQueueWithComplete[Int] = source                     // connect the Source to a Sink that prints the number
     .toMat(Sink.foreach(num => println(s"completed $num")))(Keep.left) // keep the Source's materialized value, i.e. SourceQueue
-    .run()(materializer) // run the source (stream) to get the auxiliary SourceQueue
+    .run()(materializer) // run the stream (graph) to get the auxiliary SourceQueue
 
   implicit val dispatcher = system.dispatcher
   val anotherSource = Source(1 to 5) // creates another Source of Int (a fast upstream)
@@ -37,11 +37,11 @@ object SourceQueueExample extends App {
     )
   val matValue2: Future[Done] = anotherSource.runWith(Sink.ignore)(materializer)
   // connect the Source to a Sink that does nothing, then run the stream to offer numbers to the SourceQueue
-  // note: the stream will be back pressured by the downstream
-  // i.e. enqueued 1 & completed 1, then enqueued 2, 3, 4, 5 (as bufferSize = 3)
+  // note: the stream will be back pressured by the slow downstream (SourceQueue)
+  // i.e. enqueued 1 & completed 1, then enqueued 2, 3, 4; it cannot offer 5 as bufferSize = 3; it needs to wait for the completion of 2 so that it could offer (enqueue) 5
 
   matValue2 onComplete {
-    case Success(Done) => println("anotherSource is Done with offering all its numbers") // anotherSource is Done: when completed 1
+    case Success(Done) => println("anotherSource is Done with offering all its numbers") // anotherSource is Done when enqueued 5 (after completed 2)
   }
 
   // SourceQueue.watchCompletion

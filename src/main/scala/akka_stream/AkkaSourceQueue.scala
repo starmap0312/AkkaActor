@@ -14,8 +14,8 @@ object AkkaSourceQueue extends App {
   implicit val system = ActorSystem("AkkaSourceQueue")
   implicit val materializer = ActorMaterializer() // an evaluation engine for the streams (note: akka streams are evaluated on top of actors)
 
-  val sourceQueue: SourceQueueWithComplete[Int] = Source.queue[Int](5, OverflowStrategy.backpressure) // Source[Int, SourceQueueWithComplete[Int]]
-    .map(x => x * x)                                                        // Source[Int, SourceQueueWithComplete[Int]]
+  val sourceQueue: SourceQueueWithComplete[Int] = Source.queue[Int](1, OverflowStrategy.backpressure) // Source[Int, SourceQueueWithComplete[Int]]
+    .map(x => x)                                                        // Source[Int, SourceQueueWithComplete[Int]]
     .toMat(Sink.foreach(x => println(s"completed $x")))(Keep.left)          // RunnableGraph[SourceQueueWithComplete[Int]]
     .run()                                                                  // SourceQueueWithComplete[Int]: materialize the graph and run it, the return value is a SourceQueue
 
@@ -36,6 +36,6 @@ object AkkaSourceQueue extends App {
 
   matValue onComplete {
     case Success(Done) => system.terminate()
-    case Failure(ex) => system.terminate()
+    case Failure(_) => system.terminate()
   }
 }
