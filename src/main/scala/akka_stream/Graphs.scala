@@ -11,6 +11,10 @@ import scala.concurrent.Future
 object Graphs extends App {
   implicit val system = ActorSystem("Graphs")
 
+  // 1) construct a runnable graph with Broadcast & Merge:
+  //    Broadcast: Fan-out the stream to several streams emitting each incoming upstream element to all downstream consumers
+  //    Merge: Merge several streams, taking elements as they arrive from input streams,
+  //           picking randomly when several have elements ready
   val runnable: RunnableGraph[NotUsed] = RunnableGraph.fromGraph(GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
     import GraphDSL.Implicits._
     val in: Source[Int, NotUsed] = Source(1 to 10)
@@ -23,8 +27,14 @@ object Graphs extends App {
 
     in ~> f1 ~> bcast ~> f2 ~> merge ~> f3 ~> out
     bcast ~> f4 ~> merge
+    // construct the graph:
+    // in -> f1 -> bcast -> f2 -> merge -> f3 -> out
+    //                |---> f4 ---->|
+
     ClosedShape
   })
+  val matValue: NotUsed = runnable.run() // run the graph
 
-  val matValue: NotUsed = runnable.run()
+  // 2)
+
 }
