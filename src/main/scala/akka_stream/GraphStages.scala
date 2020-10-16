@@ -65,16 +65,17 @@ object GraphStages extends App {
   // Create a Source from the Graph to access the DSL
   val source1: Source[Int, NotUsed] = Source.fromGraph(sourceGraph1)
   val future1: Future[Int] = source1.take(10).runFold(0)(_ + _) // 1 + 2 + ... + 10 = 55
+  println("test 1")
   println(Await.result(future1, 3.seconds)) // print 55
 
 
-  // 2) build a new custom Sink that will emit numbers from 1 until it is cancelled
+  // 2) build a new custom Sink that will print out the number to stdout
   class StdoutSink extends GraphStage[SinkShape[Int]] {
 
     val in: Inlet[Int] = Inlet("StdoutSink") // the ports of this operator
     override val shape: SinkShape[Int] = SinkShape(in)
 
-    override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
+    override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = {
       new GraphStageLogic(shape) {
 
         // note: this requests one element at the Sink startup! (that's why the stream starts to flaw once run?)
@@ -98,13 +99,48 @@ object GraphStages extends App {
           }
         })
       }
+    }
   }
 
   val sinkGraph2: Graph[SinkShape[Int], NotUsed] = new StdoutSink
   // Create a Source from the Graph to access the DSL
   val sink2: Sink[Int, NotUsed] = Sink.fromGraph(sinkGraph2)
-
+  println("test 2")
   val matValue2: NotUsed = source1.take(5).runWith(sink2) // print 1, 2, 3, 4, 5
+
+  // 3) build a new custom operator that will apply a function to the numbers
+  class Map[A, B](f: A => B) extends GraphStage[FlowShape[A, B]] {
+
+    val in = Inlet[A]("Map.in")
+    val out = Outlet[B]("Map.out")
+
+    override val shape = FlowShape.of(in, out)
+
+    override def createLogic(attr: Attributes): GraphStageLogic = {
+      new GraphStageLogic(shape) {
+        setHandler(in, new InHandler {
+          override def onPush(): Unit = {
+            val element = grab(in)
+            // it cannot be called again until the port is pushed again by the upstream
+            // ex. IllegalArgumentException: Cannot get element from already empty input port
+
+            push(out, f(element))
+            // this is only possible after the port has been pulled by downstream
+          }
+        })
+        setHandler(out, new OutHandler {
+          override def onPull(): Unit = {
+            pull(in)
+            // this is only possible after the port has been pushed by upstream
+          }
+        })
+      }
+    }
+  }
+  val mapGraph3: Graph[FlowShape[Int, Int], NotUsed] = new Map(_ * 2)
+  val mapper3: Flow[Int, Int, NotUsed] = Flow.fromGraph(mapGraph3)
+  println("test 3")
+  val result3: NotUsed = source1.take(3).via(mapper3).runWith(sink2) // print 2, 4, 6
 
   system.terminate()
 }
