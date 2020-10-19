@@ -97,9 +97,15 @@ object Quickstart extends App {
 
   // 6) Flow
   val invertFlow: Flow[Int, Int, NotUsed] = Flow[Int].map(element => element * -1)
-  val runnable2: RunnableGraph[NotUsed] = Source(1 to 3) via invertFlow to Sink.foreach(element => println(element))
+  val runnable2: RunnableGraph[NotUsed] = Source(1 to 3) via invertFlow to Sink.foreach(element => println("invertFlow: " + element))
   // source.via([Flow]): the via() method connects a Source with a Flow, resulting a new Source
   val matValue7: NotUsed = runnable2.run() // -1 -2 -3
+
+  // 6.2) Flow.fromFunction[A, B]
+  val invertFlow62 = Flow.fromFunction[Int, Int](element => element * -1)
+  val runnable62: RunnableGraph[NotUsed] = Source(1 to 3) via invertFlow62 to Sink.foreach(element => println("invertFlow2: " +element))
+  // source.via([Flow]): the via() method connects a Source with a Flow, resulting a new Source
+  val matValue62: NotUsed = runnable62.run() // -1 -2 -3
 
   // 7) materialized value:
   //    after running (materializing) the RunnableGraph[T] we get back the materialized value of type T
