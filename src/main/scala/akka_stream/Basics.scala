@@ -242,7 +242,11 @@ object Basics extends App {
   val source13: Source[Int, NotUsed] = Source(1 to 3)
   val flow13: Flow[Int, Int, NotUsed] = Flow[Int].map(_ * 2)
   val sink13: Sink[Int, Future[Done]] = Sink.ignore
-  val runnable13: RunnableGraph[NotUsed] = source13.via(flow13).log("test12", x => s"${x}").addAttributes(verboseAttribute).to(sink13)
+  val runnable13: RunnableGraph[NotUsed] = source13
+    .via(flow13)
+    .log("test12", x => s"${x}")
+    .addAttributes(verboseAttribute)
+    .to(sink13)
   // [INFO] [test12] Element: 2
   // [INFO] [test12] Element: 4
   // [INFO] [test12] Element: 6
