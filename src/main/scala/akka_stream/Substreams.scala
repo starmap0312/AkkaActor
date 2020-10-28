@@ -61,5 +61,16 @@ object Substreams extends App {
   val maValue4: (NotUsed, Future[Done]) = source4.to(Sink.foreach(x => println(s"elements not diverted: ${x}"))).run() // elements not diverted: 1, 3, 5, 7, 9
   Await.result(maValue4._2, 2.second)
 
-  // 5) splitWhen
+  // 5) Source.alsoTo(sink):
+  //    send elements that pass through this Flow also to another Sink
+  //    note: if the wireTap Sink backpressures, elements that would've been sent to it will be "backpressured"
+  val source5: Source[Int, NotUsed] = Source(1 to 5).alsoTo(Sink.foreach(x => println(s"alsoTo to sink: ${x}"))) // alsoTo to sink: 1, 2, 3, 4, 5
+  val maValue5 = source5.to(Sink.foreach(x => println(s"elements not alsoTo: ${x}"))).run() // elements not alsoTo: 1, 2, 3, 4, 5
+
+  // 5) Source.wireTap(sink):
+  //    elements that pass through this Flow will also be sent to the wire-tap Sink, without affecting the mainline flow
+  //    If the wireTap Sink backpressures, elements that would've been sent to it will be "dropped" instead
+  val source6 = Source(1 to 5).wireTap(Sink.foreach[Int](x => println(s"wireTap to sink: ${x}")))  // elements wireTap to sink: 1, 2, 3, 4, 5
+  val maValue6 = source6.to(Sink.foreach(x => println(s"elements not wireTap: ${x}"))).run() // elements not wireTap: 1, 2, 3, 4, 5
+
 }
