@@ -179,6 +179,12 @@ object Quickstart extends App {
     .runWith(Sink.foreach(println)) // TWEET1, TWEET2: Attach the Flow to a Sink that will finally print the tweets
 
 
+  // 12) source.zip([stream]): reduce stream to a single value, similar to what collection.reduce() does
+  val numbers: Source[Int, NotUsed] = Source(1 to 3)
+  val strings: Source[String, NotUsed] = Source(List("one", "two", "three"))
+  val numbersZipStrings: Source[(Int, String), NotUsed] = numbers.zip(strings)
+  numbersZipStrings.runWith(Sink.foreach(println)) // (1,one), (2,two), (3,three)
+
   StdIn.readLine()
   system.terminate()
 }
