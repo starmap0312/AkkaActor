@@ -8,6 +8,7 @@ import akka.stream.{ActorMaterializer, IOResult, ThrottleMode}
 import akka.stream.scaladsl.{FileIO, Flow, FlowOps, Keep, RunnableGraph, Sink, Source}
 import akka.util.ByteString
 
+import scala.collection.immutable
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.io.StdIn
@@ -180,9 +181,9 @@ object Quickstart extends App {
 
 
   // 12) source.zip([stream]): reduce stream to a single value, similar to what collection.reduce() does
-  val numbers: Source[Int, NotUsed] = Source(1 to 3)
-  val strings: Source[String, NotUsed] = Source(List("one", "two", "three"))
-  val numbersZipStrings: Source[(Int, String), NotUsed] = numbers.zip(strings)
+  val numbers13: Source[Int, NotUsed] = Source(1 to 3)
+  val strings13: Source[String, NotUsed] = Source(List("one", "two", "three"))
+  val numbersZipStrings: Source[(Int, String), NotUsed] = numbers13.zip(strings13)
   numbersZipStrings.runWith(Sink.foreach(println)) // (1,one), (2,two), (3,three)
 
 
@@ -191,6 +192,14 @@ object Quickstart extends App {
   val flow13: Flow[Int, Int, NotUsed] = Flow.fromSinkAndSource(Sink.ignore, Source.single(1))
   val runnable13: RunnableGraph[NotUsed] = Source(1 to 10).via(flow13).to(Sink.foreach[Int](x => println(s"fromSinkAndSource: ${x}"))) // fromSinkAndSource: 1
   runnable13.run()
+
+  // 14) Source.zipN(Seq[Source]):
+  //     Combine the elements of multiple streams into a stream of sequences
+  val numbers14: Source[Int, NotUsed] = Source(1 :: 2 :: 3 :: Nil)
+  val strings14: Source[String, NotUsed] = Source("one" :: "two" :: "three" :: Nil)
+  val chars14: Source[String, NotUsed] = Source("a" :: "b" :: "c" :: Nil)
+  val source14  = numbers14 :: strings14 :: chars14 :: Nil
+  Source.zipN(source14).runWith(Sink.foreach(println)) // Vector(1, one, a), Vector(2, two, b), Vector(3, three, c)
 
   StdIn.readLine()
   system.terminate()
