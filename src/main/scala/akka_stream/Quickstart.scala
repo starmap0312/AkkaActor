@@ -185,6 +185,13 @@ object Quickstart extends App {
   val numbersZipStrings: Source[(Int, String), NotUsed] = numbers.zip(strings)
   numbersZipStrings.runWith(Sink.foreach(println)) // (1,one), (2,two), (3,three)
 
+
+  // 13) Flow.fromSinkAndSource(sink, source)
+  //     Creates a Flow from a Sink and a Source where Flow = in -> Sink | Source -> out
+  val flow13: Flow[Int, Int, NotUsed] = Flow.fromSinkAndSource(Sink.ignore, Source.single(1))
+  val runnable13: RunnableGraph[NotUsed] = Source(1 to 10).via(flow13).to(Sink.foreach[Int](x => println(s"fromSinkAndSource: ${x}"))) // fromSinkAndSource: 1
+  runnable13.run()
+
   StdIn.readLine()
   system.terminate()
 }
