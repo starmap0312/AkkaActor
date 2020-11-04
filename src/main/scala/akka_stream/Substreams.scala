@@ -5,6 +5,7 @@ import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, SubstreamCancelStrategy}
 import akka.stream.scaladsl.{Flow, Keep, RunnableGraph, Sink, Source, SubFlow}
 
+import scala.collection.immutable
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
@@ -25,7 +26,7 @@ object Substreams extends App {
   subflow1.mergeSubstreams.to(Sink.foreach(println(_))).run() // merge all subflows into a single source producing 3 2 1 4 5, in random order
   Thread.sleep(1000)
 
-  // 1.1) concatSubstreams(): you limit the number of active substreams running and being merged at a time, with either the concatSubstreams method
+  // 1.1) concatSubstreams(): you limit the number of active substreams running and being merged at a time, with the concatSubstreams method
   //      concatSubstreams() is equivalent to mergeSubstreamsWithParallelism(1)
   println("groupBy and concatSubstreams")
   subflow1.concatSubstreams.to(Sink.foreach(println(_))).run() // since the number of running (i.e. not yet completed) substreams is capped, so this causes deadlock and generates only 1
@@ -34,19 +35,37 @@ object Substreams extends App {
   // 1.2) splitWhen([strategy])(predicate)
   //      only generate a new substream if the predicate returns true
   //      note: groupby generates a new substream by the key computed
-  val text = "1st line.\n2nd line.\n3rd line\n"
   println("splitWhen to sink")
-  val charCount = Source(text.toList)
-    .splitWhen { _ == '\n' }
+  val charList: List[Char] = "1st line\n2nd line\n3rd line\n".toList
+  val subflow12: SubFlow[Char, NotUsed, Source[Char, NotUsed]#Repr, Source[Char, NotUsed]#Closed] = Source(charList).splitWhen { _ == '\n' }
+  val charCount = subflow12
     .to(Sink.foreach(print)) // 1st line.\n2nd line.\n3rd line
     .run()
   Thread.sleep(1000)
 
   // Flattening operators
-  // 2) flatMapConcat():
+  // 2) Source/Flow.flatMapConcat():
+  //    Transform each input element into a Source whose elements are then flattened into the output stream through concatenation
   println("flatMapConcat")
   val source2: Source[Int, NotUsed] = Source(1 to 2).flatMapConcat(i => Source(List.fill(3)(i)))
-  val maValue2: Future[Done] = source2.via(Flow[Int].map({ x => println(s"$x"); x })).runWith(Sink.ignore) // 1 1 1 2 2 2
+  source2.runWith(Sink.foreach(println(_))) // 1 1 1 2 2 2
+  Thread.sleep(1000)
+
+  // 2.2) Source/Flow.flatMapMerge(breadth, fn: (_ => Source))
+  //    Transform each input element into a Source whose elements are then flattened into the output stream through merging
+  //    where at most `breadth` substreams are being consumed at any given time
+  println("flatMapMerge: breadth=1")
+  val source22: Source[Int, NotUsed] = Source(1 to 2).flatMapMerge(1, i => Source(List.fill(3)(i)))
+  source22.runWith(Sink.foreach(println(_))) // 1 1 1 2 2 2
+  Thread.sleep(1000)
+  println("flatMapMerge: breadth=2")
+  val source23: Source[Int, NotUsed] = Source(1 to 2).flatMapMerge(2, i => Source(List.fill(3)(i)))
+  source23.runWith(Sink.foreach(println(_))) // 2 1 2 1 2 1
+  Thread.sleep(1000)
+  println("flatMapMerge: breadth=3")
+  val source24: Source[Int, NotUsed] = Source(1 to 2).flatMapMerge(3, i => Source(List.fill(3)(i)))
+  source24.runWith(Sink.foreach(println(_))) // 2 1 2 1 2 1
+  Thread.sleep(1000)
 
   // Fan-out operators
   // 3) Source.divertTo(sink, predicate)/Flow.divertTo(sink, predicate):
