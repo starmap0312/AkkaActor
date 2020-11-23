@@ -24,7 +24,7 @@ import akka.stream.scaladsl.{Flow, FlowWithContext, Sink, Source, SourceWithCont
 //     associate the original context with each of the produced elements
 //   Disallow: reordering operations: ex. mapAsyncUnordered(), statefulMapConcat(), etc.
 object ContextPropagation extends App {
-  implicit val system = ActorSystem("Substreams")
+  implicit val system = ActorSystem("ContextPropagation")
   implicit val materializer = ActorMaterializer()
 
   // 1) SourceWithContext.fromTuples(sourceOfTuples)
@@ -33,9 +33,29 @@ object ContextPropagation extends App {
   val sourceWithContext1: SourceWithContext[String, Int, NotUsed] = SourceWithContext.fromTuples(source1)
   sourceWithContext1.runWith(Sink.foreach(x => println(x))) // (element1,1), (element2,2)
 
+  Thread.sleep(1000)
+  // SourceWithContext.asSource
+  val source12: Source[(String, Int), NotUsed] = sourceWithContext1.asSource
+  source12.runWith(Sink.foreach(x => println(x))) // (element1,1), (element2,2)
+
+  Thread.sleep(1000)
   // 2) FlowWithContext.fromTuples(flowOfTuples)
   val flow2: Flow[(String, Int), (String, Int), NotUsed] = Flow[(String, Int)].map(x => (s"transformed ${x._1}", x._2))
   val flowWithContext2: FlowWithContext[String, Int, String, Int, NotUsed] = FlowWithContext.fromTuples(flow2)
   sourceWithContext1.via(flowWithContext2).runWith(Sink.foreach(x => println(x))) // (transformed element1,1), (transformed element2,2)
+
+  Thread.sleep(1000)
+
+  // FlowWithContext.asFlow
+  val flow12: Flow[(String, Int), (String, Int), NotUsed] = flowWithContext2.asFlow
+  source12.via(flow12).runWith(Sink.foreach(x => println(x))) // ((transformed element1,1), (transformed element2,2)
+
+  Thread.sleep(1000)
+
+  val flowWithContext3: FlowWithContext[String, Int, String, Int, NotUsed]#Repr[String, Int] = FlowWithContext[String, Int].map(str => s"${str} in flow3" )
+  sourceWithContext1.via(flowWithContext2).via(flowWithContext3).runWith(Sink.foreach(x => println(x))) // (transformed element1 in flow3,1), (transformed element2 in flow3,2)
+
+//  val flow3: Flow[(String, Int), (String, Int), NotUsed] = FlowWithContext[String, Int].map(str => s"${str} in flow3" ).asFlow
+
 
 }
