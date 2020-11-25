@@ -20,6 +20,7 @@ libraryDependencies ++= Seq(
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.7",
   "org.slf4j" % "slf4j-api" % "1.7.+", // required if to use log.info(...) in ActorLogging
   "org.slf4j" % "slf4j-simple" % "1.7.+", // required if to use log.info(...) in ActorLogging
+  "ch.qos.logback" % "logback-classic" % "1.2.3", // for logback.xml
   // packages for testing
   //"junit" % "junit" % "4.11" % "test",
   "org.scalatest" %% "scalatest" % "3.+" % Test,
@@ -31,6 +32,13 @@ libraryDependencies ++= Seq(
 //   this creates the package ./target/scala-2.12/akkaactor_2.12-0.1.jar
 // sbt publishLocal:
 //   this creates the package ~/.ivy2/local/default/akkaactor_2.12/0.1/jars/akkaactor_2.12.jar
+
+// Ultrabrew Metrics: a lightweight, high-performance Java library to measure the behavior of components
+// https://github.com/ultrabrew/metrics
+ThisBuild / resolvers += "ultrabrew" at "https://dl.bintray.com/ultrabrew/m2"
+libraryDependencies ++= Seq(
+  "io.ultrabrew.metrics" % "metrics-core" % "0.6.0",
+)
 
 enablePlugins(JavaAppPackaging) // for building distribution files with executables
 // Use of the sbt-native-packager plugin allows you to run the following commands:
