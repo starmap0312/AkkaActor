@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.7",
   "org.slf4j" % "slf4j-api" % "1.7.+", // required if to use log.info(...) in ActorLogging
   "org.slf4j" % "slf4j-simple" % "1.7.+", // required if to use log.info(...) in ActorLogging
-  "ch.qos.logback" % "logback-classic" % "1.2.3", // for logback.xml
+  "ch.qos.logback" % "logback-classic" % "1.2.3", // required for logback.xml configuration to work
   // packages for testing
   //"junit" % "junit" % "4.11" % "test",
   "org.scalatest" %% "scalatest" % "3.+" % Test,
