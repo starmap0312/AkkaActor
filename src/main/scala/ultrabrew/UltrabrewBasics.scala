@@ -55,8 +55,10 @@ object UltrabrewBasics extends App {
   // 2020-11-30 18:03 INFO  metrics - lastUpdated=1606730603699 size-tag1=v3 count=3 sum=4 min=1 max=2 lastValue=1 size
 
   Thread.sleep(5000)
+
   test.setSize(1, Array("size-tag1", "v3"))
   test.setSize(2, Array("size-tag1", "v3"))
   // 2020-11-30 18:07 INFO  metrics - lastUpdated=1606730820017 size-tag1=v3 count=2 sum=3 min=1 max=2 lastValue=2 size
+  
   Thread.sleep(5000)
 }
