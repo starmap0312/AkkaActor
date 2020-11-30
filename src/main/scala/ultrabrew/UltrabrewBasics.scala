@@ -17,14 +17,14 @@ class TestResource(metricRegistry: MetricRegistry) {
   //  - Count (e.g., number of requests processed over default=60.seconds)
   //  - Min (e.g., lowest latency across all requests over default=60.seconds)
   //  - Max (e.g., highest latency across all requests over default=60.seconds)
-  val sizeGauge = metricRegistry.gauge("size") // Gauge measures a 64-bit integer value at given time
+  val latencyGauge = metricRegistry.gauge("latency") // Gauge measures a 64-bit integer value at given time
 
   def countError(tagList: Array[String]): Unit = {
     errorCounter.inc(tagList: _*)
   }
 
   def setSize(value: Long, tagList: Array[String]): Unit = {
-    sizeGauge.set(value, tagList: _*)
+    latencyGauge.set(value, tagList: _*)
   }
 }
 
@@ -49,16 +49,16 @@ object UltrabrewBasics extends App {
   // 2020-11-30 18:03 INFO  metrics - lastUpdated=1606730603689 error-tag1=v1 error-tag1=v2 sum=1 error
   test.countError(Array("error-tag1", "v1", "error-tag2", "v2"))
   // 2020-11-30 18:03 INFO  metrics - lastUpdated=1606730603696 error-tag1=v1 error-tag2=v2 sum=1 error
-  test.setSize(1, Array("size-tag1", "v3"))
-  test.setSize(2, Array("size-tag1", "v3"))
-  test.setSize(1, Array("size-tag1", "v3"))
-  // 2020-11-30 18:03 INFO  metrics - lastUpdated=1606730603699 size-tag1=v3 count=3 sum=4 min=1 max=2 lastValue=1 size
+  test.setSize(1, Array("latency-tag1", "v3"))
+  test.setSize(2, Array("latency-tag1", "v3"))
+  test.setSize(1, Array("latency-tag1", "v3"))
+  // 2020-11-30 18:03 INFO  metrics - lastUpdated=1606730603699 latency-tag1=v3 count=3 sum=4 min=1 max=2 lastValue=1 latency
 
   Thread.sleep(5000)
 
-  test.setSize(1, Array("size-tag1", "v3"))
-  test.setSize(2, Array("size-tag1", "v3"))
-  // 2020-11-30 18:07 INFO  metrics - lastUpdated=1606730820017 size-tag1=v3 count=2 sum=3 min=1 max=2 lastValue=2 size
-  
+  test.setSize(1, Array("latency-tag1", "v3"))
+  test.setSize(2, Array("latency-tag1", "v3"))
+  // 2020-11-30 18:07 INFO  metrics - lastUpdated=1606730820017 latency-tag1=v3 count=2 sum=3 min=1 max=2 lastValue=2 latency
+
   Thread.sleep(5000)
 }
