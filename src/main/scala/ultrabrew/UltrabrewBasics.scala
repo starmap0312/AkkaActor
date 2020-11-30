@@ -26,10 +26,10 @@ object UltrabrewBasics extends App {
   //   it holds the configurations for metrics including metric name and type
   //   it also tracks and reports the metrics
   val metricRegistry: MetricRegistry = new MetricRegistry
-  // SLF4JReporter: reports to SLF4J Logger with given name to log the aggregated values of the metrics
-  // note: need to add log4j2.xml configuration file in order to print the metrics to console
+
   // withStepSize(): sets the reporting frequency, default=60.seconds
   val reporter: SLF4JReporter = SLF4JReporter.builder().withName("metrics").withStepSize(1).build()
+  // SLF4JReporter: reports to SLF4J Logger with given name to log the aggregated values of the metrics
 
   metricRegistry.addReporter(reporter)
 
