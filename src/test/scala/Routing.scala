@@ -5,7 +5,6 @@ import akka.testkit.{TestKit, TestProbe}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-// 1) A Simple Router: created inside an actor explicitly, specifying the routing logic & managing routees by code
 class Worker extends Actor with ActorLogging {
   override def receive: Receive = {
     case Master.Work =>
@@ -16,6 +15,7 @@ class Worker extends Actor with ActorLogging {
 object Master {
   case object Work
 }
+// 1) A Simple Router: created inside an actor explicitly, specifying the routing logic & managing routees by code
 class Master extends Actor {
   import Master._
   var router = {

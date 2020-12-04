@@ -16,7 +16,7 @@ object RouterExample extends App {
   class Master extends Actor {
     import Master._
 
-    var router = {
+    var router: Router = {
       // create routee actors
       val routees = Vector.fill(5) {
         val routee = context.actorOf(Props[Worker])
