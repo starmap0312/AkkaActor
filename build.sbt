@@ -1,10 +1,12 @@
 
-name := "AkkaActor"
+ThisBuild / name := "AkkaActor"
 
-version := "0.1"
+ThisBuild / version := "0.1"
 
-scalaVersion := "2.12.6"
+ThisBuild / scalaVersion := "2.13.3"
 val akkaVersion = "2.6.+"
+
+scalacOptions ++= Seq("-language:postfixOps")
 
 libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.3.1",
@@ -16,8 +18,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http"   % "10.+",
   "com.typesafe.akka" %% "akka-http-caching" % "10.+", // to use CachingDirectives in route
   "org.jsoup" % "jsoup" % "1.8.3",
-  "com.fasterxml.jackson.core" % "jackson-core" % "2.9.7",
-  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.7",
+  "com.fasterxml.jackson.core" % "jackson-core" % "2.12.0",
+  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.0",
   "org.slf4j" % "slf4j-api" % "1.7.+", // required if to use log.info(...) in ActorLogging
   "org.slf4j" % "slf4j-simple" % "1.7.+", // required if to use log.info(...) in ActorLogging
   "ch.qos.logback" % "logback-classic" % "1.2.3", // required for logback.xml configuration to work

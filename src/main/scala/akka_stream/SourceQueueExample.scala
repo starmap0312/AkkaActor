@@ -45,7 +45,7 @@ object SourceQueueExample extends App {
   }
 
   // SourceQueue.watchCompletion
-  queue watchCompletion() onComplete {
+  queue.watchCompletion() onComplete {
     case Success(Done) => println("SourceQueue is complete")
   }
 

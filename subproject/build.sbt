@@ -1,4 +1,4 @@
-version := "0.2"
+ThisBuild / version := "0.2"
 
 val akkaVersion = "2.6.+"
 
