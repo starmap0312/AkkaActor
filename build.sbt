@@ -4,7 +4,8 @@ ThisBuild / name := "AkkaActor"
 ThisBuild / version := "0.1"
 
 ThisBuild / scalaVersion := "2.13.3"
-val akkaVersion = "2.6.+"
+val akkaVersion = "2.6.8"
+val akkaHttpVersion = "10.2.1"
 
 scalacOptions ++= Seq("-language:postfixOps")
 
@@ -14,9 +15,10 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
   "com.typesafe.akka" %% "akka-discovery" % akkaVersion,
-  "com.typesafe.akka" %% "akka-http-spray-json" % "10.+", // akka JSON marshaller Support
-  "com.typesafe.akka" %% "akka-http"   % "10.+",
-  "com.typesafe.akka" %% "akka-http-caching" % "10.+", // to use CachingDirectives in route
+  "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion, // akka JSON marshaller Support
+  "com.typesafe.akka" %% "akka-http"   % akkaHttpVersion,
+  "com.typesafe.akka" %% "akka-http-caching" % akkaHttpVersion, // to use CachingDirectives in route
+  "com.typesafe.akka" %% "akka-http2-support" % akkaHttpVersion,
   "org.jsoup" % "jsoup" % "1.8.3",
   "com.fasterxml.jackson.core" % "jackson-core" % "2.12.0",
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.0",

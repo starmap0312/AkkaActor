@@ -16,6 +16,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, MediaType, MediaTypes}
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
@@ -38,7 +39,7 @@ object RouteTest {
     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     mapper.setSerializationInclusion(Include.NON_ABSENT)
 
-    val route = {
+    val route: Route = {
       get {
         path("path") { // only /path is handled, but not /path/
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Hello World</h1>")) // Hello World
@@ -113,10 +114,15 @@ object RouteTest {
             HttpEntity(MediaTypes.`application/json`, mapper.writeValueAsString(Map("name" -> "john", "age" -> 10)))
           ) // {name: "john", age: 1}
           // this returns with header: Content-Type: application/json !!!!
+        } ~
+        path("params") {
+          parameters("x") { x =>
+            complete(x)
+          }
         }
       }
     }
-    val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
+    val bindingFuture = Http().newServerAt("localhost", 8080).bind(route)
 
     println(s"Server at http://localhost:8080/path\nPress RETURN to stop...")
     StdIn.readLine() // let it run until user presses return
