@@ -116,8 +116,10 @@ object RouteTest {
           // this returns with header: Content-Type: application/json !!!!
         } ~
         path("params") {
-          parameters("x") { x =>
+          parameters("x") { x => // x OR y is required; otherwise, you get message "Request is missing required query parameter 'x'"
             complete(x)
+          } ~ parameter("y") { y =>
+            complete(y)
           }
         }
       }
