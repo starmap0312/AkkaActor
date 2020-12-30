@@ -3,6 +3,9 @@ package akka_actors
 import akka.actor.SupervisorStrategy.{Escalate, Restart, Stop}
 import akka.actor.{Actor, OneForOneStrategy, Props}
 
+// ref: https://doc.akka.io/docs/akka/current/fault-tolerance.html#creating-a-supervisor-strategy
+// ref: https://doc.akka.io/docs/akka/current/actors.html#actor-lifecycle
+// ref: https://doc.akka.io/docs/akka/current/general/supervision.html#actors-and-exceptions
 //1) where should failures go?
 //   they are handled by passing messages, which are sent to some address
 //2) failure supervision
@@ -27,7 +30,7 @@ object FailureHandling extends App {
     //    this applies the fault handling to the child actor that failed, not to all children actors
     // 2) AllForOneStrategy:
     //    this applies the fault handling to all children actors (ex. for applications that children need to live or die together)
-    override val supervisorStrategy = OneForOneStrategy() {
+    override val supervisorStrategy = OneForOneStrategy() { // override the default supervisorStrategy = SupervisorStrategy.defaultStrategy, which is to Restart the failed child for infinite NrOfRetries in the case of all Exceptions
       // type Decider = PartialFunction[Throwable, Directive]
       case _: DBException => Restart       // restart its child actor in case of DBException
         // restart will reinstall the initial behavior/state of the failed child actor (i.e. reconstructed)
