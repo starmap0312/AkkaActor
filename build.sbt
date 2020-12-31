@@ -3,7 +3,7 @@ ThisBuild / name := "AkkaActor"
 
 ThisBuild / version := "0.1"
 
-ThisBuild / scalaVersion := "2.13.3"
+ThisBuild / scalaVersion := "2.13.4"
 val akkaVersion = "2.6.8"
 val akkaHttpVersion = "10.2.1"
 

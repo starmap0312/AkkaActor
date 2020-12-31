@@ -2,6 +2,9 @@ package akka_actors
 import akka.actor.{Actor, ActorSystem, Props, Terminated}
 import akka.routing.{ActorRefRoutee, RoundRobinRoutingLogic, Router}
 
+// ref: https://doc.akka.io/docs/akka/current/routing.html
+// Router:
+//   messages can be sent via a router to efficiently route them to destination actors, known as its routees
 object RouterExample extends App {
 
   class Worker extends Actor {
