@@ -8,6 +8,17 @@ import akka.testkit.{EventFilter, ImplicitSender, TestKit}
 // ref: https://doc.akka.io/docs/akka/current/fault-tolerance.html#supervision-of-top-level-actors
 class FaultHandlingDocSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with AnyWordSpecLike with Matchers with BeforeAndAfterAll {
 
+  // a Child class that allows you set and get its state
+  class Child extends Actor {
+    var state = 0
+    def receive = {
+      case ex: Exception => throw ex
+      case x: Int        => state = x
+      case "get"         => sender() ! state
+    }
+  }
+
+  // a Supervisor class with customized strategy
   class Supervisor extends Actor {
     import akka.actor.OneForOneStrategy
     import akka.actor.SupervisorStrategy._
@@ -26,15 +37,7 @@ class FaultHandlingDocSpec(_system: ActorSystem) extends TestKit(_system) with I
     }
   }
 
-  class Child extends Actor {
-    var state = 0
-    def receive = {
-      case ex: Exception => throw ex
-      case x: Int        => state = x
-      case "get"         => sender() ! state
-    }
-  }
-
+  // a Supervisor class with default strategy
   class SupervisorWithDefaultStrategy extends Actor {
     def receive = {
       case p: Props => sender() ! context.actorOf(p)
