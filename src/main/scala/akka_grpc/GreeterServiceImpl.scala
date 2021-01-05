@@ -7,8 +7,6 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 
-import akka_grpc._
-
 class GreeterServiceImpl(implicit mat: Materializer) extends GreeterService {
   import mat.executionContext
 

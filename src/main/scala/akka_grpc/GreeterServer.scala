@@ -5,7 +5,6 @@ import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.{ Http, HttpConnectionContext }
 import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.ConfigFactory
-import akka_grpc._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
