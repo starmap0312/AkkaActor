@@ -5,7 +5,6 @@ import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
-import akka_grpc._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
