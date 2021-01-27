@@ -26,6 +26,17 @@ object Substreams extends App {
   subflow1.mergeSubstreams.to(Sink.foreach(println(_))).run() // merge all subflows into a single source producing 3 2 1 4 5, in random order
   Thread.sleep(1000)
 
+  Source(1 to 10).groupBy(100, _ % 3).take(2).reduce((x, y) => x + y).mergeSubstreams.to(Sink.foreach(x => println(s"groupBy & take & reduce: ${x}"))).run()
+  // 1, 4, 7, 10 => (take 2) => 1, 4 => (reduce) => 5 \\
+  // 2, 5, 8 => (take 2) => 2, 5 => (reduce) => 7     ==> 5, 7, 9
+  // 3, 6, 9 => (take 2)  => 3, 6 => (reduce) => 9    //
+  Thread.sleep(1000)
+  Source(1 to 10).groupBy(100, x => s"${x % 3} xxx").take(2).reduce((x, y) => x + y).mergeSubstreams.to(Sink.foreach(x => println(s"groupBy & take & reduce: ${x}"))).run()
+  // 1, 4, 7, 10 => (take 2) => 1, 4 => (reduce) => 5 \\
+  // 2, 5, 8 => (take 2) => 2, 5 => (reduce) => 7     ==> 5, 7, 9
+  // 3, 6, 9 => (take 2)  => 3, 6 => (reduce) => 9    //
+  Thread.sleep(1000)
+
   // 1.1) concatSubstreams(): you limit the number of active substreams running and being merged at a time, with the concatSubstreams method
   //      concatSubstreams() is equivalent to mergeSubstreamsWithParallelism(1)
   println("groupBy and concatSubstreams")

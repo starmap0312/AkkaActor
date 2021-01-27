@@ -160,7 +160,7 @@ object AsyncMapExample extends App {
   }
   Source(1 to 100)
     .mapAsync(1000)(networkCall) // as the work is I/O bound, we can set the parallelism to be much larger than # of cup cores
-    .runWith(Sink.ignore)
+    .runWith(Sink.foreach(println(_))) // in order: 1, 2, 3, ..., 100
     .onComplete {
       case Success(Done) => println("Done: ex3.") // prints Done when the stream is complete
     }
