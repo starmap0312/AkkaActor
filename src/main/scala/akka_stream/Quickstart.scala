@@ -64,7 +64,7 @@ object Quickstart extends App {
   //matValue1 onComplete { // materialized value can be seen as external handler to a materialized stream
   //  case _ => system.terminate()
   //}
-  // 2) runWith([Sink]): connecting this Source to a Sink and run it (and returns the auxiliary materialized value)
+  // 2) source.runWith([Sink]): connecting this Source to a Sink and run it (and returns the auxiliary materialized value)
   val printSink: Sink[Int, Future[Done]] = Sink.foreach[Int](num => println(num)) // the source has an auxiliary materialized value of Future[Done] that can be used to check if the running stream is DONE
   val matValue2: Future[Done] = source.runWith(printSink) // runWith([Sink]): materialize the flow and get the Sink's materialized value
 
@@ -200,6 +200,14 @@ object Quickstart extends App {
   val chars14: Source[String, NotUsed] = Source("a" :: "b" :: "c" :: Nil)
   val source14  = numbers14 :: strings14 :: chars14 :: Nil
   Source.zipN(source14).runWith(Sink.foreach(println)) // Vector(1, one, a), Vector(2, two, b), Vector(3, three, c)
+  Thread.sleep(3000)
+
+  // 15) Flow.runWith(source, sink)
+  //     Connect the source to this Flow and then connect it to the sink and run it
+  //     the returned tuple contains the materialized values of the source and sink
+  val flow14: Flow[Int, Int, NotUsed] = Flow[Int].map(_ + 10)
+  val matValue14: (NotUsed, Future[Int]) = flow14.runWith(Source(1 to 10), Sink.head)// fromSinkAndSource: 1
+  println(Await.result(matValue14._2, 3.seconds)) // 11
 
   StdIn.readLine()
   system.terminate()

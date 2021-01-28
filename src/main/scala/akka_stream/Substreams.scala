@@ -53,6 +53,10 @@ object Substreams extends App {
     .to(Sink.foreach(print)) // 1st line.\n2nd line.\n3rd line
     .run()
   Thread.sleep(1000)
+  val mergedStream: Source[String, NotUsed] = subflow12.map(_.toString).reduce(_ + _).concatSubstreams
+  mergedStream.runForeach(println(_)) // 1st line.\n, 2nd line.\n, 3rd line
+
+  Thread.sleep(1000)
 
   // Flattening operators
   // 2) Source/Flow.flatMapConcat():
