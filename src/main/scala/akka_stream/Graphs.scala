@@ -86,11 +86,11 @@ object Graphs extends App {
   //    Each upstream element is emitted to one downstream consumer according to the partitioner function applied to the element
   val source4: Source[Int, NotUsed] = Source(1 to 5)
 
-  val even: Sink[Int, NotUsed] =
+  val even4: Sink[Int, NotUsed] =
     Flow[Int]
     .log("even").withAttributes(Attributes.logLevels(onElement = LogLevels.Info))
     .to(Sink.ignore)
-  val odd: Sink[Int, NotUsed] =
+  val odd4: Sink[Int, NotUsed] =
     Flow[Int]
       .log("odd")
       .withAttributes(Attributes.logLevels(onElement = LogLevels.Info))
@@ -100,8 +100,8 @@ object Graphs extends App {
     import GraphDSL.Implicits._
     val partition = builder.add(Partition[Int](2, element => if (element % 2 == 0) 0 else 1))
     source4 ~> partition.in
-    partition.out(0) ~> even
-    partition.out(1) ~> odd
+    partition.out(0) ~> even4
+    partition.out(1) ~> odd4
     ClosedShape
   }
   val runnable4: RunnableGraph[NotUsed] = RunnableGraph.fromGraph(graph4)
@@ -111,6 +111,25 @@ object Graphs extends App {
   // [INFO] [11/02/2020 13:47:48.763] [odd] Element: 3
   // [INFO] [11/02/2020 13:47:48.763] [even] Element: 4
   // [INFO] [11/02/2020 13:47:48.763] [odd] Element: 5
+
+  // 5) Partition & Merge
+  Thread.sleep(3000)
+  val source5: Source[Int, NotUsed] = Source(1 to 5)
+  val even5: Flow[Int, Int, NotUsed] = Flow[Int]
+      .log("even").withAttributes(Attributes.logLevels(onElement = LogLevels.Info))
+      .map(x => x)
+  val odd5: Flow[Int, Int, NotUsed] = Flow[Int]
+      .log("odd").withAttributes(Attributes.logLevels(onElement = LogLevels.Info))
+      .map(x => x)
+  val flow5: Flow[Int, Int, NotUsed] = Flow.fromGraph(GraphDSL.create() { implicit builder =>
+    import GraphDSL.Implicits._
+    val partition = builder.add(Partition[Int](2, element => if (element % 2 == 0) 0 else 1))
+    val merge = builder.add(Merge[Int](2))
+    partition.out(0) ~> even5 ~> merge
+    partition.out(1) ~> odd5 ~> merge
+    FlowShape(partition.in, merge.out)
+  })
+  val runnable5 = source5.via(flow5).runForeach(println(_))
 
   system.terminate()
 }
