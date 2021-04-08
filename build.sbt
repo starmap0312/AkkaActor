@@ -92,4 +92,9 @@ lazy val mainProject = (project in file(".")).dependsOn(subProject)
 Compile / mainClass := Some("Akkaactor")
 // 2) sbt "project subProject" run
 //    run the sub-project
-//
+
+// 3) sbt run with custom system properties: (not working)
+//    ex. sbt -Darg3=value3 run
+//    note that, SBT runner does not normally create new processes, so you also have to tell it to do this if you want to set the system properties
+//ThisBuild / fork := true
+//ThisBuild / javacOptions ++= Seq("-Dvar1=value1")
