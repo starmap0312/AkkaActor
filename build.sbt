@@ -60,7 +60,8 @@ enablePlugins(JavaAppPackaging) // for building distribution files with executab
 //     target/docker/stage/opt/docker/lib/*
 //   you can then run simply as: docker run -it ffe9041f5f18
 //     However, by default the built docker image has ENTRYPOINT ["/opt/docker/bin/akkaactor"]
-//     so it assumes that there is a Scala class named as the project with main method defined to be run as an executable
+//     so it assumes that there is a Scala class named the same as the project with main method defined to be run as an executable
+//     note: if there are multiple main classes detected, you need to select one to run, ex. Compile / mainClass := Some("Akkaactor2")
 //     To run the docker bash, you can override the entrypoint by: docker run -it --entrypoint "/bin/bash" ffe9041f5f18
 // sbt debian:packageBin
 //   this creates a debian package
