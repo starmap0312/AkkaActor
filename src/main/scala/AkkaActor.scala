@@ -21,7 +21,9 @@ object Akkaactor extends App {
   // 1) set property by docker run command line:
   // if you run:
   //   sbt docker:publishLocal
-  //   docker run -it --rm cf339085f332 -Darg2=value2 OR  ./target/docker/stage/opt/docker/bin/mainproject -Darg2=val2
+  //   docker run -it --rm cf339085f332 -Darg2=value2 OR
+  //   ./target/docker/stage/opt/docker/bin/mainproject -Darg2=val2 OR
+  //   ./bin/mainproject -Darg2=val2 (inside docker container)
   // it will print out: [jdk, arg1, arg2, path, file, java, os, line, user, sun]
 
   val appConfig = ConfigFactory.defaultApplication()
