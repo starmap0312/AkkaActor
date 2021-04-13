@@ -3,15 +3,15 @@ package akka_stream
 import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{RestartFlow, RestartSource, Sink, Source}
+import akka.stream.scaladsl.{RestartSource, Source}
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.io.StdIn
 import scala.util.{Failure, Success}
 
-// https://doc.akka.io/docs/akka/current/stream/stream-error.html
-object StreamError extends App {
+// Error Handling in Streams: https://doc.akka.io/docs/akka/current/stream/stream-error.html
+object ErrorHandlingInStreams extends App {
   implicit val system = ActorSystem("StreamError")
   implicit val dispatcher = system.dispatcher
   implicit val materializer = ActorMaterializer() // an evaluation engine for the streams (note: akka streams are evaluated on top of actors)
@@ -71,7 +71,7 @@ object StreamError extends App {
 
   // 4) stream throws Exception and enclosed by RestartSource.withBackoff():
   println("4) stream throws Exception and enclosed by RestartSource.withBackoff()")
-  val future4: Future[Done] = RestartSource.withBackoff(1.seconds, 1.seconds, 0)(() => // this will restart the graph for failures
+  val future4: Future[Done] = RestartSource.withBackoff(1.seconds, 10.seconds, 0.2, 3)(() => // this will restart the graph for failures
     Source(-5 to 5)
       .map({x => println(s"before: $x"); x})
       .map(x => 1 / x) // 1/-5 = 0, 1/-4 = 0, 1/-3 = 0, 1/-2 = 0, 1/-1 = -1, 1/0 --> throwing ArithmeticException: / by zero
