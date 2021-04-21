@@ -266,5 +266,13 @@ object Basics extends App {
   Thread.sleep(1000)
   source14.to(Sink.foreach(println(_))).run() // print 2, 4, 6, the preMaterialized source takes elements from the queue14.offer
 
+  // 15) mapAsync: Future fails with Exception
+  val matValue15: Future[Done] = Source(1 to 3)
+    .mapAsync(parallelism = 1) { x => if (x == 2) Future.failed(new Exception("Future fails in mapAsync")) else Future.successful(x) }
+    .runWith(Sink.foreach[Int](x => println(s"mapAsync: Future succeeds with value=${x}"))) // mapAsync: Future succeeds with value=1
+  matValue15.onComplete {
+    case Success(_) =>
+    case Failure(ex) => println(s"matValue15 fails with ${ex}") // matValue15 fails with java.lang.Exception: Future fails in mapAsync
+  }
   system.terminate()
 }
