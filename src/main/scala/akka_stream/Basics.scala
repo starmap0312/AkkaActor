@@ -268,7 +268,7 @@ object Basics extends App {
 
   // 15) mapAsync: Future fails with Exception
   val matValue15: Future[Done] = Source(1 to 3)
-    .mapAsync(parallelism = 1) { x => if (x == 2) Future.failed(new Exception("Future fails in mapAsync")) else Future.successful(x) }
+    .mapAsync(parallelism = 1) { x => if (x == 2) Future.failed(new Exception("Future fails in mapAsync")) else Future.successful(x) } // the stream completes with failure at value=2; value=3 will not be processed
     .runWith(Sink.foreach[Int](x => println(s"mapAsync: Future succeeds with value=${x}"))) // mapAsync: Future succeeds with value=1
   matValue15.onComplete {
     case Success(_) =>
