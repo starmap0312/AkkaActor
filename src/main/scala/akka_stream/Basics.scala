@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.{Await, Future, Promise}
 import scala.concurrent.duration._
+import scala.io.StdIn
 import scala.util.{Failure, Success}
 
 /* Basics and working with Flows:
@@ -267,6 +268,7 @@ object Basics extends App {
   source14.to(Sink.foreach(println(_))).run() // print 2, 4, 6, the preMaterialized source takes elements from the queue14.offer
 
   // 15) mapAsync: Future fails with Exception
+  println("mapAsync example 1")
   val matValue15: Future[Done] = Source(1 to 3)
     .mapAsync(parallelism = 1) { x => if (x == 2) Future.failed(new Exception("Future fails in mapAsync")) else Future.successful(x) } // the stream completes with failure at value=2; value=3 will not be processed
     .runWith(Sink.foreach[Int](x => println(s"mapAsync: Future succeeds with value=${x}"))) // mapAsync: Future succeeds with value=1
@@ -274,5 +276,22 @@ object Basics extends App {
     case Success(_) =>
     case Failure(ex) => println(s"matValue15 fails with ${ex}") // matValue15 fails with java.lang.Exception: Future fails in mapAsync
   }
+
+  Thread.sleep(1000)
+  println("mapAsync example 2")
+  val matValue15_2: Future[Done] = Source(1 to 3)
+    .mapAsync(parallelism = 1) { x => if (x == 2) Future.failed(new Exception("Future fails in mapAsync2")) else Future.successful(x) } // the stream completes successfully at value=2 (note: value=3 is not processed)
+    .recover {
+      case ex =>
+        println("Recover allows to send last element on failure and gracefully complete the stream")
+        2 // Recover allows to send last element on failure and gracefully complete the stream
+    }
+    .runWith(Sink.foreach[Int](x => println(s"mapAsync2: Future succeeds with value=${x}"))) // mapAsync2: Future succeeds with value=1, mapAsync2: Future succeeds with value=2 (note: value=3 is not processed)
+  matValue15_2.onComplete {
+    case Success(_) => println(s"matValue15_2 succeeds with recovery") // matValue15_2 succeeds with recovery
+    case Failure(ex) =>
+  }
+
+  StdIn.readLine()
   system.terminate()
 }
