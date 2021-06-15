@@ -41,7 +41,7 @@ libraryDependencies ++= Seq(
 // https://github.com/ultrabrew/metrics
 ThisBuild / resolvers += "ultrabrew" at "https://dl.bintray.com/ultrabrew/m2"
 libraryDependencies ++= Seq(
-  "io.ultrabrew.metrics" % "metrics-core" % "0.6.0",
+  "io.ultrabrew.metrics" % "metrics-core" % "0.8.0",
 )
 
 enablePlugins(JavaAppPackaging) // for building distribution files with executables
