@@ -21,7 +21,7 @@ class TestResource(metricRegistry: MetricRegistry) {
   //  - Max (e.g., highest latency across all requests over default=60.seconds)
   val latencyGauge = metricRegistry.gauge("latency") // Gauge measures a 64-bit integer value at given time
 
-  // Timer: measure elapsed time between two events and act as counter for these events
+  // Timer: measure elapsed time between two events, in nanoseconds, and act as counter for these events
   val requestTimer = metricRegistry.timer("requests")
 
   def countError(tagList: Array[String]): Unit = {
@@ -35,7 +35,7 @@ class TestResource(metricRegistry: MetricRegistry) {
   def handleRequest(tagList: Array[String]): Unit = {
     val startTime = requestTimer.start()
     // .. handle request ..
-    Thread.sleep((Math.random() * 100).toLong)
+    Thread.sleep((Math.random() * 100).toLong) // random sleep [0, 100] ms
     // Note: no need for separate counter for requests per sec, as count is already included
     requestTimer.stop(startTime, tagList: _*)
   }
