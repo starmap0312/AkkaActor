@@ -66,8 +66,8 @@ object DynamicStreamHandling extends App {
   // attach a MergeHub Source to the consumer: this will materialize to a corresponding Sink
   val runnableGraph1: RunnableGraph[Sink[String, NotUsed]] = MergeHub.source[String](perProducerBufferSize = 16).to(consumer1)
 
-  // by running/materializing the consumer we get back a Sink, and hence now have access to feed elements into it
-  // this Sink can be materialized any number of times, and every element that enters the Sink will be consumed by this single consumer
+  // by running/materializing the consumer we get back `a corresponding Sink`, instead of a NotUsed/Future[Done]
+  // this Sink can be materialized any number of times, but every element that enters the Sink will be consumed by this single consumer
   // note that as the consumer has been started, it means that there is a single sink that is attached to multiple producers
   val toConsumer1: Sink[String, NotUsed] = runnableGraph1.run()
 
@@ -83,8 +83,9 @@ object DynamicStreamHandling extends App {
   // a simple producer that publishes a new "message" every second
   val producer2: Source[String, Cancellable] = Source.tick(1.second, 1.second, "New message")
 
-  // by attaching a BroadcastHub Sink to the producer, it will materialize to a corresponding Source, instead of a Future[Done]
+  // by attaching a BroadcastHub Sink to the producer, it will materialize to `a corresponding Source`, instead of a Future[Done]
   // (We need to use toMat and Keep.right since by default the materialized value of the left is used)
+  // this Source can be materialized any number of times, but every element that leaves the Source will be produced by this single producer
   val runnableGraph2: RunnableGraph[Source[String, NotUsed]] = producer2.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.right)
 
   // Consumers can only be attached once the BroadcastHub.sink has been materialized
