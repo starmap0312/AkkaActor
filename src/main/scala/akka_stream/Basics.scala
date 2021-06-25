@@ -1,7 +1,7 @@
 package akka_stream
 
 import akka.{Done, NotUsed}
-import akka.actor.{Actor, ActorRef, ActorSystem}
+import akka.actor.{Actor, ActorRef, ActorSystem, Cancellable}
 import akka.stream.Attributes.LogLevels
 import akka.stream._
 import akka.stream.scaladsl.{Flow, Keep, RunnableGraph, Sink, Source, SourceQueueWithComplete}
@@ -292,6 +292,9 @@ object Basics extends App {
     case Failure(ex) =>
   }
 
+  // 16) Source.tick([initialDelay], [interval], [tick data])
+  val tickSource: Source[String, Cancellable] = Source.tick(100.millis, 1.second, "generate a tick data")
+  tickSource.runForeach(println(_)) // generate a  tick data
   StdIn.readLine()
   system.terminate()
 }
