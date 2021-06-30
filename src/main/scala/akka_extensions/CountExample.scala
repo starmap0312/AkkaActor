@@ -46,8 +46,9 @@ object CountExample extends App {
 
   // You can choose to have your Extension:
   // 1) loaded on-demand, ex.
-  CountExtension.get(system) // a CountExtension singleton is demanded, thus instantiated and shared within the system
-  CountExtension.get(system) // as it's shared within the ActorSystem, no new CountExtension is instantiated here
+  val counter1: CountExtensionImpl = CountExtension.get(system) // a CountExtension singleton is demanded, thus instantiated and shared within the system
+  val counter2: CountExtensionImpl = CountExtension.get(system) // as it's shared within the ActorSystem, no new CountExtension is instantiated here
+  println(counter1.equals(counter2)) // true, i.e. the same instance
   println(CountExtension(system).increment) // 1
   // note you don't need to call the above get() to instantiate the Extension, you can simply use CountExtensionImpl(system) that is tied to a single ActorSystem, shared within that ActorSystem
   println(CountExtension(system).increment) // 2
