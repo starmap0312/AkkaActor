@@ -44,15 +44,15 @@ class ServerActor() extends Actor {
   }
 }
 
-object ServerExtensionImpl extends ExtensionId[ServerExtension] with ExtensionIdProvider {
-  override def lookup(): ExtensionId[_ <: Extension] = ServerExtensionImpl
-  override def createExtension(system: ExtendedActorSystem): ServerExtension = new ServerExtension()(system) // called by Akka to instantiate our Extension
+object ServerExtension extends ExtensionId[Server] with ExtensionIdProvider {
+  override def lookup(): ExtensionId[_ <: Extension] = ServerExtension
+  override def createExtension(system: ExtendedActorSystem): Server = new Server()(system) // called by Akka to instantiate our Extension
 }
 
 // define a class that can start() an ServerActor, i.e. instantiate a ServerActor and send a StartServer message to it
 // note that we define the class as an akka Extension, which will then be "loaded once" per ActorSystem (a shared instance in within an ActorSystem) and managed by Akka
 // in other words,
-class ServerExtension()(implicit val system: ExtendedActorSystem) extends akka.actor.Extension {
+class Server()(implicit val system: ExtendedActorSystem) extends akka.actor.Extension {
   implicit val timeout = Timeout(10.second)
   def start() = {
     val serverActor = Some(system.actorOf(Props(new ServerActor()), s"server-actor"))
@@ -62,7 +62,7 @@ class ServerExtension()(implicit val system: ExtendedActorSystem) extends akka.a
 
 object SimpleServer {
   implicit val system = ActorSystem("SimpleServer")
-  val serverExtension = ServerExtensionImpl(system) // the extension Implementation is tied to a single ActorSystem, shared within that ActorSystem
+  val serverExtension = ServerExtension(system) // the extension Implementation is tied to a single ActorSystem, shared within that ActorSystem
 
   def main(args: Array[String]): Unit = {
     // http://127.0.0.1:9001/hello
