@@ -4,6 +4,7 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, FlowWithContext, Sink, Source, SourceWithContext}
+import akka_stream.ContextPropagation.sourceWithContext1
 
 // https://doc.akka.io/docs/akka/current/stream/stream-context.html
 // Context Propagation:
@@ -52,8 +53,14 @@ object ContextPropagation extends App {
 
   Thread.sleep(1000)
 
+  // 3) Flow of Tuples Flow[(String, Int), (String, Int), NotUsed] & FlowWithContext[String, Int, String, Int, NotUsed] can be used interchangeably
   val flowWithContext3: FlowWithContext[String, Int, String, Int, NotUsed]#Repr[String, Int] = FlowWithContext[String, Int].map(str => s"${str} in flow3" )
-  sourceWithContext1.via(flowWithContext2).via(flowWithContext3).runWith(Sink.foreach(x => println(x))) // (transformed element1 in flow3,1), (transformed element2 in flow3,2)
+  val flow4 = Flow[(String, Int)].map(x => s"${x._1} in flow4" -> x._2)
+  val source3: SourceWithContext[String, Int, NotUsed] = sourceWithContext1.via(flowWithContext2).via(flowWithContext3).via(flow4)
+  source3.runWith(Sink.foreach(x => println(x))) // (transformed element1 in flow3 in flow4,1), (transformed element2 in flow3 in flow4,2)
+  Thread.sleep(1000)
+  val source32: Source[(String, Int), NotUsed]  = source1.via(flowWithContext2).via(flowWithContext3).via(flow4)
+  source32.runWith(Sink.foreach(x => println(x))) // (transformed element1 in flow3 in flow4,1), (transformed element2 in flow3 in flow4,2)
 
 //  val flow3: Flow[(String, Int), (String, Int), NotUsed] = FlowWithContext[String, Int].map(str => s"${str} in flow3" ).asFlow
 
