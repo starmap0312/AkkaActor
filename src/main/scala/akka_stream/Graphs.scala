@@ -22,22 +22,21 @@ object Graphs extends App {
   //        Broadcast: Fan-out the stream to several streams emitting each incoming upstream element to all downstream consumers
   //        Merge: Merge several streams, taking elements as they arrive from input streams,
   //               picking randomly when several have elements ready
+  val source1: Source[Int, NotUsed] = Source(1 to 10)
+  val sink1: Sink[Int, Future[Done]] = Sink.foreach[Int](x => println(x))
+
   val graph1: Graph[ClosedShape.type, NotUsed] = GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
     import GraphDSL.Implicits._
-
-    val in: Source[Int, NotUsed] = Source(1 to 10)
-    val out: Sink[Int, Future[Done]] = Sink.foreach[Int](x => println(x))
-
     val f1, f2, f3, f4 = Flow[Int].map(_ * 10) // Flow[Int, Int, NotUsed]
 
     val bcast: UniformFanOutShape[Int, Int] = builder.add(Broadcast[Int](2))
     val merge: UniformFanInShape[Int, Int] = builder.add(Merge[Int](2))
 
-    in ~> f1 ~> bcast ~> f2 ~> merge ~> f3 ~> out
+    source1 ~> f1 ~> bcast ~> f2 ~> merge ~> f3 ~> sink1
     bcast ~> f4 ~> merge
     // construct the graph:
-    // in -> f1 -> bcast -> f2 -> merge -> f3 -> out
-    //                |---> f4 ---->|
+    // source1 -> f1 -> bcast -> f2 -> merge -> f3 -> sink1
+    //                    |---> f4 ---->|
     ClosedShape
   }
   val runnable1: RunnableGraph[NotUsed] = RunnableGraph.fromGraph(graph1)
@@ -80,6 +79,12 @@ object Graphs extends App {
 
   val mergedResult: Future[Done] = sourceMerged.runWith(Sink.foreach[Int](println(_))) // 1, 2
   Await.result(mergedResult, 1.second)
+
+  // 3.2) Merge two sources. Prefer one source if both sources have elements ready.
+  //      if multiple have elements available, prefer the 'right' one when 'preferred' is 'true'
+  val sourceMerged2 = sourceOne.mergePreferred(sourceTwo, priority = true)
+  val mergedResult2: Future[Done] = sourceMerged2.runWith(Sink.foreach[Int](println(_))) // 2, 1
+  Await.result(mergedResult2, 1.second)
 
   // Fan-out operators
   // 4) Partition:	Fan-out the stream to several streams
