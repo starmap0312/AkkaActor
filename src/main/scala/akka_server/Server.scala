@@ -44,8 +44,8 @@ class ServerActor() extends Actor {
   }
 }
 
-object ServerExtension extends ExtensionId[Server] with ExtensionIdProvider {
-  override def lookup(): ExtensionId[_ <: Extension] = ServerExtension
+object Server extends ExtensionId[Server] with ExtensionIdProvider {
+  override def lookup(): ExtensionId[_ <: Extension] = Server
   override def createExtension(system: ExtendedActorSystem): Server = new Server()(system) // called by Akka to instantiate our Extension
 }
 
@@ -62,11 +62,11 @@ class Server()(implicit val system: ExtendedActorSystem) extends akka.actor.Exte
 
 object SimpleServer {
   implicit val system = ActorSystem("SimpleServer")
-  val serverExtension = ServerExtension(system) // the extension Implementation is tied to a single ActorSystem, shared within that ActorSystem
+  val server = Server(system) // the extension Implementation is tied to a single ActorSystem, shared within that ActorSystem
 
   def main(args: Array[String]): Unit = {
     // http://127.0.0.1:9001/hello
-    serverExtension.start()
-    // serverExtension.start() // you cannot run the server twice: Exception InvalidActorNameException: actor name [server-actor] is not unique
+    server.start()
+    // server.start() // you cannot run the server twice: Exception InvalidActorNameException: actor name [server-actor] is not unique
   }
 }
