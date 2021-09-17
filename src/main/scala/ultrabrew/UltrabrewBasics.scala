@@ -38,6 +38,8 @@ class TestResource(metricRegistry: MetricRegistry) {
     Thread.sleep((Math.random() * 100).toLong) // random sleep [0, 100] ms
     // Note: no need for separate counter for requests per sec, as count is already included
     latencyTimer.stop(startTime, tagList: _*)
+    // or use update(startTime, tagList), ex.
+    // latencyTimer.update(System.nanoTime() - startTime, tagList: _*)
   }
 }
 
