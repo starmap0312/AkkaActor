@@ -89,7 +89,7 @@ class FaultHandlingDocSpec(_system: ActorSystem) extends TestKit(_system) with I
       child ! "get"
       expectMsg(42)
 
-      child ! new ArithmeticException // crash the child actor, and we expect that supervisor will Resume the child actor for all Exceptions
+      child ! new ArithmeticException // crash the child actor, and we expect that supervisor will Restart the child actor for all Exceptions
       child ! "get"
       expectMsg(0)
 
@@ -97,12 +97,12 @@ class FaultHandlingDocSpec(_system: ActorSystem) extends TestKit(_system) with I
       child ! "get"
       expectMsg(42)
 
-      child ! new NullPointerException // crash the child actor harder, and we expect that supervisor will Resume the child actor for all Exceptions
+      child ! new NullPointerException // crash the child actor harder, and we expect that supervisor will Restart the child actor for all Exceptions
       child ! "get"
       expectMsg(0) // state = 0 as the child actor is restarted
 
       watch(child) // have testActor watch “child”
-      child ! new IllegalArgumentException // break the child actor, and we expect that supervisor will Resume the child actor for all Exceptions
+      child ! new IllegalArgumentException // crash the child actor harder, and we expect no message replied as the child actor is Restarted
       expectNoMessage()
     }
   }
