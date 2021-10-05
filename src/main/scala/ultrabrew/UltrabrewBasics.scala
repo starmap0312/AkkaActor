@@ -61,29 +61,39 @@ object UltrabrewBasics extends App {
   val test = new TestResource(metricRegistry)
 
   test.countError(Array("cache-error", "v1", "cache-error", "v2"))
-  // 2020-11-30 18:03 INFO  metrics - lastUpdated=1606730603689 cache-error=v1 cache-error=v2 sum=1 error
-  test.countError(Array("cache-error", "v1", "cache-error2", "v2"))
-  // 2020-11-30 18:03 INFO  metrics - lastUpdated=1606730603696 cache-error=v1 cache-error2=v2 sum=1 error
+  test.countError(Array("cache-error", "v1", "cache-error", "v2"))
+  test.countError(Array("cache-error", "v1", "cache-error", "v2")) // cache-error sum=3 is reported
+  // INFO metrics - lastUpdated=1633416531266 cache-error=v1 cache-error=v2 sum=3 error
+  Thread.sleep(61000)
+  test.countError(Array("cache-error", "v1", "cache-error", "v2"))
+  test.countError(Array("cache-error", "v1", "cache-error", "v2"))
+  test.countError(Array("cache-error", "v1", "cache-error", "v2"))
+  test.countError(Array("cache-error", "v1", "cache-error", "v2")) // cache-error sum=4 is reported
+  // INFO metrics - lastUpdated=1633416680446 cache-error=v1 cache-error=v2 sum=4 error
+
+  Thread.sleep(3000)
+  test.countError(Array("cache-error", "v1", "cache-error2", "v2")) // cache-error2=v2 sum=1 is reported
+  // INFO metrics - lastUpdated=1633416681448 cache-error=v1 cache-error2=v2 sum=1 error
   test.setSize(1, Array("cache-size", "v3"))
   test.setSize(2, Array("cache-size", "v3"))
-  test.setSize(1, Array("cache-size", "v3"))
-  // 2020-11-30 18:03 INFO  metrics - lastUpdated=1606730603699 cache-size=v3 count=3 sum=4 min=1 max=2 lastValue=1 cache-size
+  test.setSize(1, Array("cache-size", "v3")) // cache-size count=3 is reported
+  // INFO metrics - lastUpdated=1633416681453 cache-size=v3 count=3 sum=4 min=1 max=2 lastValue=1 cache-size
 
   Thread.sleep(3000)
 
   test.setSize(1, Array("cache-size", "v3"))
-  test.setSize(2, Array("cache-size", "v3"))
-  // 2020-11-30 18:07 INFO  metrics - lastUpdated=1606730820017 cache-size=v3 count=2 sum=3 min=1 max=2 lastValue=2 cache-size
+  test.setSize(2, Array("cache-size", "v3")) // cache-size count=2 is reported
+  // INFO metrics - lastUpdated=1633416684460 cache-size=v3 count=2 sum=3 min=1 max=2 lastValue=2 cache-size
 
   Thread.sleep(3000)
 
   test.handleRequest(Array("status", String.valueOf(200), "update-time", "v1"))
   test.handleRequest(Array("status", String.valueOf(400), "update-time", "v1"))
   test.handleRequest(Array("status", String.valueOf(500), "update-time", "v1"))
-  test.handleRequest(Array("status", String.valueOf(200), "update-time", "v1"))
-  // [metrics-1] INFO metrics - lastUpdated=1623992484316 status=200 update-time=v1 count=2 sum=51812394 min=9207269 max=42605125 latency
-  // [metrics-1] INFO metrics - lastUpdated=1623992484255 status=400 update-time=v1 count=1 sum=67725859 min=67725859 max=67725859 latency
-  // [metrics-1] INFO metrics - lastUpdated=1623992484307 status=500 update-time=v1 count=1 sum=51874143 min=51874143 max=51874143 latency
+  test.handleRequest(Array("status", String.valueOf(200), "update-time", "v1")) // status=200, count=2 is reported
+  // INFO metrics - lastUpdated=1633416687696 status=200 update-time=v1 count=2 sum=94395706 min=32193648 max=62202058 latency
+  // INFO metrics - lastUpdated=1633416687566 status=400 update-time=v1 count=1 sum=66777889 min=66777889 max=66777889 latency
+  // INFO metrics - lastUpdated=1633416687634 status=500 update-time=v1 count=1 sum=67865079 min=67865079 max=67865079 latency
 
   Thread.sleep(3000)
 }
