@@ -13,8 +13,8 @@ package akka_http.server
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, MediaType, MediaTypes}
+import akka.http.scaladsl.marshalling.{Marshaller, Marshalling, ToEntityMarshaller, ToResponseMarshallable}
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
@@ -101,15 +101,17 @@ object RouteTest {
         } ~
         path("map") { // ex. define implicit val ToEntityMarshaller
           // serialize Map[String, Any] as byte[]
-          implicit val toEntityMarshaller: ToEntityMarshaller[Any] = {
+          implicit val marshaller: ToEntityMarshaller[Any] = { // ToEntityMarshaller[Any] == Marshaller[Any, MessageEntity]
             Marshaller.withFixedContentType(MediaTypes.`application/json`) {
               anyObject => HttpEntity(MediaTypes.`application/json`, mapper.writeValueAsString(anyObject))
             }
           }
-          complete(Map("name" -> "john", "age" -> 10)) // {name: "john", age: 1}
+          complete(Map("name" -> "john", "age" -> 10)) // note complete(m: => ToResponseMarshallable) does not take a Map, so we need to define an implicit marshaller
+          // {name: "john", age: 1}
           // this returns with header: Content-Type: application/json !!!!
         } ~
         path("httpEntity") { // ex. define implicit val ToEntityMarshaller
+          val e: UniversalEntity = HttpEntity(MediaTypes.`application/json`, mapper.writeValueAsString(Map("name" -> "john", "age" -> 10)))
           complete(
             HttpEntity(MediaTypes.`application/json`, mapper.writeValueAsString(Map("name" -> "john", "age" -> 10)))
           ) // {name: "john", age: 1}
