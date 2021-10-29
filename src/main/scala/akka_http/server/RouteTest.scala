@@ -106,8 +106,10 @@ object RouteTest {
               anyObject => HttpEntity(MediaTypes.`application/json`, mapper.writeValueAsString(anyObject))
             }
           }
-          complete(Map("name" -> "john", "age" -> 10)) // note complete(m: => ToResponseMarshallable) does not take a Map, so we need to define an implicit marshaller
-          // {name: "john", age: 1}
+          complete(Map("name" -> "john", "age" -> 10)) // {name: "john", age: 1}
+          // note that:
+          //   complete(m: => ToResponseMarshallable) does not take a Map, so we need to define an implicit marshaller in the scope
+          //   ex. we could define the implicit marshaller in a trait & extends the trait
           // this returns with header: Content-Type: application/json !!!!
         } ~
         path("httpEntity") { // ex. define implicit val ToEntityMarshaller
