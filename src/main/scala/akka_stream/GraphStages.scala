@@ -41,16 +41,16 @@ object GraphStages extends App {
         private var counter = 1
 
         // Output port handler
-        setHandler(out, new OutHandler { // This handler has two callbacks: onPull() & onDownstreamFinish()
+        // setHandler(out: Outlet[_], handler: OutHandler): assigns callbacks for the events for an Outlet
+        setHandler(out, new OutHandler { // OutHandler: collection of callbacks for an output port of a GraphStage
+          // This handler has two callbacks: onPull() & onDownstreamFinish()
           override def onPull(): Unit = {
             // onPull():
-            //   this is called when the output port is ready to emit the next element
-            //   push(out, elem) is now allowed to be called on this port.
+            //   this is called when the output port has received a pull, and therefore ready to emit an element, i.e. GraphStageLogic.push is now allowed to be called on this port
 
-            push(out, counter)
-            // push(out, elem):
-            //   this pushes an element to the output port, i.e. out Outlet
-            //   this is only possible after the port has been pulled by downstream.
+            push(out, counter) // push(out, elem) is now allowed to be called on this port
+            // push an element to the output port, i.e. out Outlet
+            //   this is only possible after the port has been pulled by downstream
 
             counter += 1
           }
@@ -84,12 +84,13 @@ object GraphStages extends App {
         setHandler(in, new InHandler { // This handler has three callbacks: onPush() & onUpstreamFinish() & onUpstreamFailure
           override def onPush(): Unit = {
             // onPush():
-            //  it is not mandatory to grab the element, but
-            //  if it is pulled while the element has not been grabbed it will drop the buffered element (discarded)
+            //  this is called when the input port has a new element available: the actual element can be retrieved via the GraphStageLogic.grab method
+            //  it is not mandatory to grab the element, but if the element is not been grabbed the buffered element will be dropped (discarded)
 
             val element = grab(in)
-            // acquire this element that has been received during an onPush()
-            // it cannot be called again until the port is pushed again by the upstream
+            // acquire a new element, which is received when onPush() is called
+            // note: it cannot be called again until the port is pushed again by the upstream
+            //       if it called again, it will throw "IllegalArgumentException: Cannot get element from already empty input port"
 
             println(element)
 
@@ -118,19 +119,19 @@ object GraphStages extends App {
 
     override def createLogic(attr: Attributes): GraphStageLogic = {
       new GraphStageLogic(shape) {
-        setHandler(in, new InHandler {
+        setHandler(in, new InHandler { // add a InHandler so that it acts like a Sink
           override def onPush(): Unit = {
             val element = grab(in)
-            // it cannot be called again until the port is pushed again by the upstream
-            // ex. IllegalArgumentException: Cannot get element from already empty input port
+            // acquire a new element, which is received when onPush() is called
 
             push(out, f(element))
-            // this is only possible after the port has been pulled by downstream
+            // push an element to the output port, i.e. out Outlet
           }
         })
-        setHandler(out, new OutHandler {
+        setHandler(out, new OutHandler { // add an OutHandler so that it acts like a Source
           override def onPull(): Unit = {
             pull(in)
+            // request a new (next) element from the input port
             // this is only possible after the port has been pushed by upstream
           }
         })
