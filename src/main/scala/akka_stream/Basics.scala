@@ -305,8 +305,13 @@ object Basics extends App {
   val repeatLastFlow: Flow[Int, Int, NotUsed] = Flow[Int].extrapolate(Iterator.continually(_))
   val rateControlSource: Source[Int, Cancellable] = slowSource.via(repeatLastFlow) // the slow source is combined with a flow that repeats its last element to allow faster consumption
   val fastSource: Source[Int, Cancellable] = Source.tick(0.seconds, 1.second, 1)
-  fastSource.zip(rateControlSource).runForeach(println) // this prints out a (1,0) every second
+  val handler2: Cancellable = fastSource.zip(rateControlSource).to(Sink.foreach(println)).run // this prints out a (1,0) every second
+  Thread.sleep(3000)
+  handler2.cancel()
 
-  Thread.sleep(5000)
+  val slowButRepeatLastSource = Source.tick(0.seconds, 10.seconds, 2).extrapolate(Iterator.continually(_))
+  slowButRepeatLastSource.runForeach(println)
+
+  Thread.sleep(1000)
   system.terminate()
 }
