@@ -293,8 +293,20 @@ object Basics extends App {
   }
 
   // 16) Source.tick([initialDelay], [interval], [tick data])
-  val tickSource: Source[String, Cancellable] = Source.tick(100.millis, 1.second, "generate a tick data")
-  tickSource.runForeach(println(_)) // generate a  tick data
-  StdIn.readLine()
+  val tickSource: Source[Symbol, Cancellable] = Source.tick(100.millis, 1.second, 'tick) // generate a tick data
+  val handler: Cancellable = tickSource.to(Sink.foreach(println)).run
+  Thread.sleep(3000)
+  handler.cancel()
+
+  // 17) Source.extrapolate/Flow.extrapolate
+  //     this allows for a faster downstream by expanding the last emitted element to an Iterator
+  //     ex. an Iterator.continually(element) will cause extrapolate to keep repeating the last emitted element
+  val slowSource: Source[Int, Cancellable] = Source.tick(0.seconds, 10.seconds, 0) // a slow source that generates a tick every 10 seconds
+  val repeatLastFlow: Flow[Int, Int, NotUsed] = Flow[Int].extrapolate(Iterator.continually(_))
+  val rateControlSource: Source[Int, Cancellable] = slowSource.via(repeatLastFlow) // the slow source is combined with a flow that repeats its last element to allow faster consumption
+  val fastSource: Source[Int, Cancellable] = Source.tick(0.seconds, 1.second, 1)
+  fastSource.zip(rateControlSource).runForeach(println) // this prints out a (1,0) every second
+
+  Thread.sleep(5000)
   system.terminate()
 }
