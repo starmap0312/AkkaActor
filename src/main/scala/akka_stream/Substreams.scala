@@ -49,6 +49,8 @@ object Substreams extends App {
   //      concatSubstreams() is equivalent to mergeSubstreamsWithParallelism(1)
   println("groupBy and concatSubstreams")
   subflow1.concatSubstreams.to(Sink.foreach(println(_))).run() // since the number of running (i.e. not yet completed) substreams is capped, so this causes deadlock and generates only 1
+  subflow1.mergeSubstreamsWithParallelism(1).to(Sink.foreach(println(_))).run() // since the number of running (i.e. not yet completed) substreams is capped, so this causes deadlock and generates only 1
+  // as parallelism=1, this means that only up to 1 substream will be executed at any given time
   Thread.sleep(1000)
 
   // 1.2) splitWhen([strategy])(predicate)
