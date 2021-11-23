@@ -86,11 +86,11 @@ object DynamicStreamHandling extends App {
   // by attaching a BroadcastHub Sink to the producer, it will materialize to `a corresponding Source`, instead of a Future[Done]
   // (We need to use toMat and Keep.right since by default the materialized value of the left is used)
   // this Source can be materialized any number of times, but every element that leaves the Source will be produced by this single producer
-  val runnableGraph2: RunnableGraph[Source[String, NotUsed]] = producer2.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.right)
+  val runnableGraph2: RunnableGraph[(Cancellable, Source[String, NotUsed])] = producer2.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.both)
 
   // Consumers can only be attached once the BroadcastHub.sink has been materialized
   // note that: as the producer has been started, it means that there is a single source that is attached to multiple consumers
-  val fromProducer2: Source[String, NotUsed] = runnableGraph2.run()
+  val (mat: Cancellable, fromProducer2: Source[String, NotUsed]) = runnableGraph2.run()
   // by running/materializing the producer, we get back a Source, which gives us access to the elements published by the producer
   // the resulting Source can be materialized any number of times, each materialization effectively attaching a new consumer
   // if there are no consumers attached to this hub, it will not drop any elements but instead backpressure the upstream producer until consumers arrive

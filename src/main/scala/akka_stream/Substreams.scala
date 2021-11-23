@@ -11,6 +11,9 @@ import scala.concurrent.duration._
 
 // ref: https://doc.akka.io/docs/akka/current/stream/stream-substream.html
 // ref: https://doc.akka.io/docs/akka/current/stream/operators/index.html
+// Substream:
+// 1) it is represented as SubFlow (SubSource) instances, on which you can multiplex a single Source or Flow into a stream of streams
+// 2) it cannot contribute to the super-flow’s materialized value since they are materialized later, during the runtime of the stream processing
 object Substreams extends App {
   implicit val system = ActorSystem("Substreams")
   implicit val dispatcher = system.dispatcher
@@ -19,11 +22,16 @@ object Substreams extends App {
   // 1) groupBy(maxSubstream, keyFn): demultiplexes the incoming stream into separate output streams
   val subflow1: SubFlow[Int, NotUsed, Source[Int, NotUsed]#Repr, Source[Int, NotUsed]#Closed] = Source(1 to 5).groupBy(3, _ % 3)
   println("groupBy to sink")
-  subflow1.to(Sink.foreach(println(_))).run() // all subflows are connected to the Sink producing 1 3 2 4 5, in random order
+  val graph1: RunnableGraph[NotUsed] = subflow1.to(Sink.foreach(println(_)))
+  // Subflow.to([Sink]): attach a Sink to each sub-flow, closing the overall Graph that is being constructed
+  graph1.run() // all sub-flows are connected to the Sink are run, producing 1 3 2 4 5, in random order
   Thread.sleep(1000)
 
   println("groupBy and mergeSubstreams")
-  subflow1.mergeSubstreams.to(Sink.foreach(println(_))).run() // merge all subflows into a single source producing 3 2 1 4 5, in random order
+  val subflow2: subflow1.Repr[Int] = subflow1.via(Flow[Int].map(_ * 2))
+  val flow2: Source[Int, NotUsed] = subflow2.mergeSubstreams
+  flow2.to(Sink.foreach(println(_))).run() // merge all subflows into a single source producing 3 * 2, 2 * 2, 1 * 2, 4 * 2, 5 *2, in random order
+  // Flatten the sub-flows back into the super-flow by performing a merge without parallelism limit (i.e. having an unbounded number of sub-flows active concurrently)
   Thread.sleep(1000)
 
   Source(1 to 10).groupBy(100, _ % 3).take(2).reduce((x, y) => x + y).mergeSubstreams.to(Sink.foreach(x => println(s"groupBy & take & reduce: ${x}"))).run()
@@ -48,7 +56,8 @@ object Substreams extends App {
   //      note: groupby generates a new substream by the key computed
   println("splitWhen to sink")
   val charList: List[Char] = "1st line\n2nd line\n3rd line\n".toList
-  val subflow12: SubFlow[Char, NotUsed, Source[Char, NotUsed]#Repr, Source[Char, NotUsed]#Closed] = Source(charList).splitWhen { _ == '\n' }
+  val source12: Source[Char, NotUsed] = Source(charList)
+  val subflow12: SubFlow[Char, NotUsed, Source[Char, NotUsed]#Repr, Source[Char, NotUsed]#Closed] = source12.splitWhen { _ == '\n' }
   val charCount = subflow12
     .to(Sink.foreach(print)) // 1st line.\n2nd line.\n3rd line
     .run()
