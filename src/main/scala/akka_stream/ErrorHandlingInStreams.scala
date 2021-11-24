@@ -5,10 +5,10 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{RestartSource, Source}
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.io.StdIn
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 // Error Handling in Streams: https://doc.akka.io/docs/akka/current/stream/stream-error.html
 object ErrorHandlingInStreams extends App {
@@ -35,8 +35,8 @@ object ErrorHandlingInStreams extends App {
   println("1) stream throws Exception w/o recover")
   val future1: Future[Done] = Source(-5 to 5)
     .map({x => println(s"before: $x"); x})
-    .map(x => 1 / x) // 1/-5 = 0, 1/-4 = 0, 1/-3 = 0, 1/-2 = 0, 1/-1 = -1, 1/0 --> throwing ArithmeticException: / by zero
-    .runForeach(x => println(s"after: $x")) // 0, 0, 0, 0, -1, java.lang.ArithmeticException: / by zero
+    .map(x => 1 / x) // before: 1/-5 = 0, 1/-4 = 0, 1/-3 = 0, 1/-2 = 0, 1/-1 = -1, 1/0 --> throwing ArithmeticException: / by zero
+    .runForeach(x => println(s"after: $x")) // after: 0, 0, 0, 0, -1, java.lang.ArithmeticException: / by zero
   Thread.sleep(3000)
   println(future1) // Future(Failure(java.lang.ArithmeticException: / by zero))
 
@@ -46,11 +46,11 @@ object ErrorHandlingInStreams extends App {
   println("2) stream throws Exception w/ recover")
   val future2: Future[Done] = Source(-5 to 5)
     .map({x => println(s"before: $x"); x})
-    .map(x => 1 / x) // 1/-5 = 0, 1/-4 = 0, 1/-3 = 0, 1/-2 = 0, 1/-1 = -1, 1/0 --> throwing ArithmeticException: / by zero
+    .map(x => 1 / x) // before: 1/-5 = 0, 1/-4 = 0, 1/-3 = 0, 1/-2 = 0, 1/-1 = -1, 1/0 --> throwing ArithmeticException: / by zero
     .recover {
       case ex: ArithmeticException => s"${ex}" // java.lang.ArithmeticException: / by zero
     }
-    .runForeach(x => println(s"after: $x")) // 0, 0, 0, 0, -1, java.lang.ArithmeticException: / by zero
+    .runForeach(x => println(s"after: $x")) // after: 0, 0, 0, 0, -1, java.lang.ArithmeticException: / by zero
   Thread.sleep(3000)
   println(future2) // future completes successfully: Future(Success(Done))
 
@@ -65,7 +65,7 @@ object ErrorHandlingInStreams extends App {
     .recoverWithRetries(attempts = 1, {
       case _: RuntimeException => planB
     })
-    .runForeach(x => println(s"after: $x")) // 0, 1, 2, 3, 4, five, six, seven, eight
+    .runForeach(x => println(s"after: $x")) // after: 0, 1, 2, 3, 4, five, six, seven, eight
   Thread.sleep(3000)
   println(future3) // future completes successfully: Future(Success(Done))
 
@@ -79,6 +79,8 @@ object ErrorHandlingInStreams extends App {
   ).run() // returns Future[Done]
   Thread.sleep(3000)
   println(future4) // future never completes as the Source is restarted infinitely: Future(<not completed>)
+  val result4 = Try(Await.result(future4, 10.seconds)) // result=Failure(java.lang.ArithmeticException: / by zero)
+  println(s"result=$result4")
 
   // i)  note that this Source will not emit a complete or failure as long as maxRestarts is not reached
   //     since the completion or failure of the wrapped Source is handled by restarting it
