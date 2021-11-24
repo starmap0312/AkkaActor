@@ -3,8 +3,8 @@ ThisBuild / name := "AkkaActor"
 
 ThisBuild / version := "0.1"
 
-ThisBuild / scalaVersion := "2.13.4"
-val akkaVersion = "2.6.8"
+ThisBuild / scalaVersion := "2.13.6"
+val akkaVersion = "2.6.17"
 val akkaHttpVersion = "10.2.1"
 
 scalacOptions ++= Seq("-language:postfixOps")
