@@ -4,12 +4,12 @@ import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
 import akka.stream.Attributes.LogLevels
 import akka.stream._
-import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Merge, Partition, RunnableGraph, Sink, Source}
+import akka.stream.scaladsl.{BidiFlow, Broadcast, Flow, GraphDSL, Merge, Partition, RunnableGraph, Sink, Source}
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
-// https://doc.akka.io/docs/akka/current/stream/stream-graphs.html#constructing-graphs
+// https://doc.akka.io/docs/akka/current/stream/stream-graphs.html
 // https://doc.akka.io/docs/akka/current/stream/operators/Partition.html
 object Graphs extends App {
   implicit val system = ActorSystem("Graphs")
@@ -89,8 +89,8 @@ object Graphs extends App {
   // Fan-out operators
   // 4) Partition:	Fan-out the stream to several streams
   //    Each upstream element is emitted to one downstream consumer according to the partitioner function applied to the element
+  println("Partition")
   val source4: Source[Int, NotUsed] = Source(1 to 5)
-
   val even4: Sink[Int, NotUsed] =
     Flow[Int]
     .log("even").withAttributes(Attributes.logLevels(onElement = LogLevels.Info))
@@ -119,6 +119,7 @@ object Graphs extends App {
 
   // 5) Partition & Merge
   Thread.sleep(3000)
+  println("Partition & Merge")
   val source5: Source[Int, NotUsed] = Source(1 to 5)
   val even5: Flow[Int, Int, NotUsed] = Flow[Int]
       .log("even").withAttributes(Attributes.logLevels(onElement = LogLevels.Info))
@@ -134,7 +135,48 @@ object Graphs extends App {
     partition.out(1) ~> odd5 ~> merge
     FlowShape(partition.in, merge.out)
   })
-  val runnable5 = source5.via(flow5).runForeach(println(_))
+  val runnable5 = source5.via(flow5).to(Sink.ignore).run
+  // [INFO] [11/02/2020 13:47:48.762] [odd] Element: 1
+  // [INFO] [11/02/2020 13:47:48.763] [even] Element: 2
+  // [INFO] [11/02/2020 13:47:48.763] [odd] Element: 3
+  // [INFO] [11/02/2020 13:47:48.763] [even] Element: 4
+  // [INFO] [11/02/2020 13:47:48.763] [odd] Element: 5
 
+  // 6) Bidirectional Flows
+  println("Bidirectional Flows")
+  def encode(x: Int) = {
+    println(s"x + 1 = ${x + 1}")
+    x + 1
+  }
+  def decode(x: Int) = {
+    println(s"x - 1 = ${x - 1}")
+    x - 1
+  }
+  def identity(x: Int) = {
+    println(s"x = ${x}")
+    x
+  }
+  val source = Source(0 to 2)
+  val codec: BidiFlow[Int, Int, Int, Int, NotUsed] = BidiFlow.fromFunctions(encode, decode)
+  val flow: Flow[Int, Int, NotUsed] = codec.join(Flow.fromFunction(identity))
+  val sink = Sink.foreach(println)
+  // source -> encode -
+  //                   |
+  //                identity
+  //                   |
+  // sink   <- decode -
+  source.via(flow).to(sink).run
+  // x + 1 = 1
+  // x = 1
+  // x - 1 = 0
+  // 0
+  // x + 1 = 2
+  // x = 2
+  // x - 1 = 1
+  // 1
+  // x + 1 = 3
+  // x = 3
+  // x - 1 = 2
+  // 2
   system.terminate()
 }
