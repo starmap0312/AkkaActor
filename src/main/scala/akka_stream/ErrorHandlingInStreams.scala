@@ -2,7 +2,7 @@ package akka_stream
 
 import akka.Done
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.{ActorAttributes, ActorMaterializer, Supervision}
 import akka.stream.scaladsl.{RestartSource, Source}
 
 import scala.concurrent.{Await, Future}
@@ -39,6 +39,26 @@ object ErrorHandlingInStreams extends App {
     .runForeach(x => println(s"after: $x")) // after: 0, 0, 0, 0, -1, java.lang.ArithmeticException: / by zero
   Thread.sleep(3000)
   println(future1) // Future(Failure(java.lang.ArithmeticException: / by zero))
+
+  println("1.2) stream throws Exception w/o recover but w/ Resume supervisionStrategy")
+  // note: the default stopping strategy would complete the stream with failure on the first element that throws an Exception
+  val future12: Future[Done] = Source(-5 to 5)
+    .map({x => println(s"before: $x"); x})
+    .map(x => 1 / x) // before: 1/-5 = 0, 1/-4 = 0, 1/-3 = 0, 1/-2 = 0, 1/-1 = -1, 1/0 (dropped), 1/1, 2/2, 3/3, 4/4, 5/5
+    .withAttributes(ActorAttributes.supervisionStrategy(Supervision.resumingDecider))
+    .runForeach(x => println(s"after: $x")) // after: 0, 0, 0, 0, -1, java.lang.ArithmeticException: / by zero
+  println(future12) // Future(Failure(java.lang.ArithmeticException: / by zero))
+  Thread.sleep(3000)
+
+  println("1.3) stream throws Exception in mapAsync w/o recover but w/ Resume supervisionStrategy")
+  // note: the default stopping strategy would complete the stream with failure on the first element that throws an Exception
+  val future13: Future[Done] = Source(-5 to 5)
+    .map({x => println(s"before: $x"); x})
+    .mapAsync(1)(x => Future(1 / x)) // before: 1/-5 = 0, 1/-4 = 0, 1/-3 = 0, 1/-2 = 0, 1/-1 = -1, 1/0 (dropped), 1/1, 2/2, 3/3, 4/4, 5/5
+    .withAttributes(ActorAttributes.supervisionStrategy(Supervision.resumingDecider))
+    .runForeach(x => println(s"after: $x")) // after: 0, 0, 0, 0, -1, java.lang.ArithmeticException: / by zero
+  println(future13) // Future(Failure(java.lang.ArithmeticException: / by zero))
+  Thread.sleep(3000)
 
   // 2) stream throws Exception w/ recover:
   //    it allows to send last element on failure and gracefully complete the stream
