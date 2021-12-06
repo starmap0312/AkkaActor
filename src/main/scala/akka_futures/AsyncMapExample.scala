@@ -30,8 +30,9 @@ object AsyncMapExample extends App {
 
   // Simulate a CPU-intensive workload that takes ~10 milliseconds
   def spin(value: Int): Int = {
-    val start = System.currentTimeMillis()
-    while ((System.currentTimeMillis() - start) < 100) {}
+//    val start = System.currentTimeMillis()
+//    while ((System.currentTimeMillis() - start) < 100) {}
+    Thread.sleep(100)
     value
   }
 
@@ -95,14 +96,21 @@ object AsyncMapExample extends App {
   //   Done: ex2.3 -> slightly faster than ex2.1, as asynchronous boundaries are introduced
   //   Done: ex2.4 -> the fastest, messages processed on multiple threads of the execution context, rather than on actors
 
+  def uniformSpin(value: Int) = Future {
+//    val start = System.currentTimeMillis()
+//    while ((System.currentTimeMillis() - start) < 100) {}
+    Thread.sleep(100)
+    value
+  }
+
   // 2.1) Simulate a non-uniform CPU-bound workload
 
   // the following stream will be fused and executed by a single actor
   Source(1 to 100)
-    .mapAsync(1)(randomSpin)
-    .mapAsync(1)(randomSpin)
-    .mapAsync(1)(randomSpin)
-    .mapAsync(1)(randomSpin)
+    .mapAsync(1)(uniformSpin)
+    .mapAsync(1)(uniformSpin)
+    .mapAsync(1)(uniformSpin)
+    .mapAsync(1)(uniformSpin)
     .runWith(Sink.ignore)
     .onComplete {
       case Success(Done) => println("Done: ex2.1") // prints Done when the stream is complete
@@ -110,13 +118,13 @@ object AsyncMapExample extends App {
 
   // 2.2) insert buffer between stages
   Source(1 to 100)
-    .mapAsync(1)(randomSpin)
+    .mapAsync(1)(uniformSpin)
     .buffer(16, OverflowStrategy.backpressure)
-    .mapAsync(1)(randomSpin)
+    .mapAsync(1)(uniformSpin)
     .buffer(16, OverflowStrategy.backpressure)
-    .mapAsync(1)(randomSpin)
+    .mapAsync(1)(uniformSpin)
     .buffer(16, OverflowStrategy.backpressure)
-    .mapAsync(1)(randomSpin)
+    .mapAsync(1)(uniformSpin)
     .buffer(16, OverflowStrategy.backpressure)
     .runWith(Sink.ignore)
     .onComplete {
@@ -126,10 +134,10 @@ object AsyncMapExample extends App {
   // 2.3) the stream will execute more efficiently if an asynchronous boundary is inserted between each mapAsync element
   //      this introduces buffer to in-between steps and further decouples the stages (default buffer size = 16 elements)
   Source(1 to 100)
-    .mapAsync(1)(randomSpin).async
-    .mapAsync(1)(randomSpin).async
-    .mapAsync(1)(randomSpin).async
-    .mapAsync(1)(randomSpin).async
+    .mapAsync(1)(uniformSpin).async
+    .mapAsync(1)(uniformSpin).async
+    .mapAsync(1)(uniformSpin).async
+    .mapAsync(1)(uniformSpin).async
     .runWith(Sink.ignore)
     .onComplete {
       case Success(Done) => println("Done: ex2.3") // prints Done when the stream is complete
@@ -137,10 +145,10 @@ object AsyncMapExample extends App {
 
   // 2.4) it would be even more efficient to just compose the stream as follows
   Source(1 to 100)
-    .mapAsync(4)(randomSpin)
-    .mapAsync(4)(randomSpin)
-    .mapAsync(4)(randomSpin)
-    .mapAsync(4)(randomSpin)
+    .mapAsync(4)(uniformSpin).async
+    .mapAsync(4)(uniformSpin).async
+    .mapAsync(4)(uniformSpin).async
+    .mapAsync(4)(uniformSpin).async
     .runWith(Sink.ignore)
     .onComplete {
       case Success(Done) => println("Done: ex2.4") // prints Done when the stream is complete
@@ -164,6 +172,10 @@ object AsyncMapExample extends App {
     .onComplete {
       case Success(Done) => println("Done: ex3.") // prints Done when the stream is complete
     }
+  // note:
+  //   mapAsync(parallelism)(f: Int => Future[Int])
+  //     if function f throws an exception and the supervision decision is Stop, the stream will be completed with failure
+  //     if function f throws an exception and the supervision decision is Resume/Restart, the element is dropped and the stream continues
 
   StdIn.readLine()
   system.terminate()
