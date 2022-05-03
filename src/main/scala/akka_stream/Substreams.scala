@@ -20,6 +20,12 @@ object Substreams extends App {
   implicit val materializer = ActorMaterializer()
   // Nesting operators:
   // 1) groupBy(maxSubstream, keyFn): demultiplexes the incoming stream into separate output streams
+  //    when a new key is encountered for the first time, a new substream is opened and subsequently fed with all elements belonging to that key
+  //    note:
+  //      if allowClosedSubstreamRecreation=false (default), the operator keeps track of all keys of streams that have already been closed, so an infinite number of keys may cause memory issues
+  //      if allowClosedSubstreamRecreation=true, substream completion and incoming elements are subject to race-conditions, ex. if elements arrive for a stream that is in the process of closing these elements might get lost
+  //    it returns a SubFlow: after this operator all transformations are applied to all substreams in the same fashion.
+  //      the substream is exited either by closing the substream (i.e. connecting to a Sink) or by merging the substreams back together (ex. mergeSubstreams)
   val subflow1: SubFlow[Int, NotUsed, Source[Int, NotUsed]#Repr, Source[Int, NotUsed]#Closed] = Source(1 to 5).groupBy(3, _ % 3)
   println("groupBy to sink")
   val graph1: RunnableGraph[NotUsed] = subflow1.to(Sink.foreach(println(_)))
@@ -32,6 +38,8 @@ object Substreams extends App {
   val flow2: Source[Int, NotUsed] = subflow2.mergeSubstreams
   flow2.to(Sink.foreach(println(_))).run() // merge all subflows into a single source producing 3 * 2, 2 * 2, 1 * 2, 4 * 2, 5 *2, in random order
   // Flatten the sub-flows back into the super-flow by performing a merge without parallelism limit (i.e. having an unbounded number of sub-flows active concurrently)
+  //   only up to Integer.MAX_VALUE substreams will be executed at any given time (i.e. substreams not yet executed are also not materialized: back-pressure applied)
+
   Thread.sleep(1000)
 
   Source(1 to 10).groupBy(100, _ % 3).take(2).reduce((x, y) => x + y).mergeSubstreams.to(Sink.foreach(x => println(s"groupBy & take & reduce: ${x}"))).run()
@@ -60,7 +68,7 @@ object Substreams extends App {
   val charList: List[Char] = "1st line\n2nd line\n3rd line\n".toList
   val source12: Source[Char, NotUsed] = Source(charList)
   val subflow12: SubFlow[Char, NotUsed, Source[Char, NotUsed]#Repr, Source[Char, NotUsed]#Closed] = source12.splitWhen { _ == '\n' }
-  val charCount = subflow12
+  val charCount: NotUsed = subflow12
     .to(Sink.foreach(print)) // 1st line.\n2nd line.\n3rd line
     .run()
   Thread.sleep(1000)
@@ -118,4 +126,36 @@ object Substreams extends App {
   val source6 = Source(1 to 5).wireTap(Sink.foreach[Int](x => println(s"wireTap to sink: ${x}")))  // elements wireTap to sink: 1, 2, 3, 4, 5
   val maValue6 = source6.to(Sink.foreach(x => println(s"elements not wireTap: ${x}"))).run() // elements not wireTap: 1, 2, 3, 4, 5
 
+  // 6) splitWhen & splitAfter: applies the given predicate to all incoming elements and emits them to a "stream of sub-streams"
+  //    splitWhen: begin a new sub-stream with the current element if the predicate is true
+  //    splitAfter: end the current substream when the predicate is true
+  Thread.sleep(1000)
+  println("splitWhen")
+  Source(1 to 99)
+    .map(elem => elem)
+    .sliding(2) // "Vector(1, 2), Vector(2, 3)", "Vector(3, 4), Vector(4, 5)", ..., Vector(98, 99)
+    .splitWhen { elems =>
+      val cur = elems.head
+      val next = elems.last
+      next % 2 == 0 // begin a new sub-stream at Vector(1, 2), Vector(3, 4), ...
+    }
+    .fold(Seq.empty[Int])((seq, x) => seq ++ x)
+    .concatSubstreams // List(1, 2, 2, 3), List(3, 4, 4, 5), ..., List(95, 96, 96, 97), List(97, 98, 98, 99)
+    .to(Sink.foreach(println))
+    .run()
+
+  Thread.sleep(1000)
+  println("splitAfter")
+  Source(1 to 99)
+    .map(elem => elem)
+    .sliding(2) // "Vector(1, 2)", "Vector(2, 3), Vector(3, 4)", "Vector(4, 5), Vector(5, 6)", ..., "Vector(96, 97), Vector(97, 98)", "Vector(98, 99)"
+    .splitAfter { elems =>
+      val cur = elems.head
+      val next = elems.last
+      next % 2 == 0 // end the current substream at Vector(1, 2), Vector(3, 4), Vector(5, 6), ...
+    }
+    .fold(Seq.empty[Int])((seq, x) => seq ++ x)
+    .concatSubstreams // List(1, 2), List(2, 3, 3, 4), List(4, 5, 5, 6), ..., List(96, 97, 97, 98), List(98, 99)
+    .to(Sink.foreach(println))
+    .run()
 }
