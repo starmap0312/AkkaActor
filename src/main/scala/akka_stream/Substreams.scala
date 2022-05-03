@@ -101,6 +101,25 @@ object Substreams extends App {
   source24.runWith(Sink.foreach(println(_))) // 2 1 2 1 2 1
   Thread.sleep(1000)
 
+  // 2.3) statefulMapConcat
+  println("statefulMapConcat")
+  val source25: Source[String, NotUsed] = Source("a" :: "b" :: "c" :: "d" :: Nil)
+  val letterAndIndex = source25.statefulMapConcat { () =>
+    var counter = 0L // shared state
+
+    // we return the function that will be invoked for each element
+    { element =>
+      counter += 1
+      (element, counter) :: Nil // we return an iterable with the single element
+    }
+  }
+  letterAndIndex.runForeach(println)
+  // (a,1)
+  // (b,2)
+  // (c,3)
+  // (d,4)
+  Thread.sleep(1000)
+
   // Fan-out operators
   // 3) Source.divertTo(sink, predicate)/Flow.divertTo(sink, predicate):
   //    Each upstream element will either be diverted to the given sink, or the downstream consumer according to the predicate function applied to the element
