@@ -3,21 +3,37 @@ package akka_server
 import akka.actor.{Actor, ActorRef, ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider, PoisonPill, Props}
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{RequestContext, Route}
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.util.Timeout
+
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 object ServerActor {
   case object StartServer
   case object StopServer
-  val route: Route = {
+  val route = {
     get {
-      path("hello") { // only /path is handled, but not /path/
+      path("hello") {
+        // def complete(m: => ToResponseMarshallable): StandardRoute
+        //   completes the request using the given arguments
         complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>World</h1>")) // Hello World
-      } ~ complete("api not defined")
+      } ~
+      // ctx: RequestContext:
+      //   an immutable object encapsulating the HttpRequest context as it flows through a akka-http Route structure
+      path("hi") { (ctx: RequestContext) => // only /path is handled, but not /path/
+        // def complete(obj: ToResponseMarshallable): Future[RouteResult]
+        //   completes the request with the given ToResponseMarshallable
+        // this allows you to access the HttpRequest, ex. ctx.request.uri , ctx.request.headers, ctx.request.entity
+        ctx.complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>World</h1>"))
+      } ~ { ctx =>
+        // def fail(error: Throwable): Future[RouteResult]
+        //   bubbles the given error up the response chain where it is dealt with by the closest handleExceptions directive and its ExceptionHandler
+        ctx.fail(new Exception("api not defined"))
+      }
     }
   }
 }
@@ -31,7 +47,7 @@ class ServerActor() extends Actor {
   def receive = {
     case StartServer => // the actor is waiting for StartServer message
       val s: ActorRef = sender()
-      println("StartServer: bindAndHandle: http://localhost:9001/hello")
+      println("StartServer: bindAndHandle:\nhttp://localhost:9001/hello\nhttp://localhost:9001/hi")
       val bindFuture = Http().bindAndHandle(route, "localhost", 9001) // once the actor receives the message, it binds to a local port and handles the defined route
       bindFuture.onComplete(x => s ! x)
       context.become { // when the server starts, the actor becomes to wait for StopServer message
