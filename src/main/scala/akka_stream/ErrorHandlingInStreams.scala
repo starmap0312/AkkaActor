@@ -41,7 +41,7 @@ object ErrorHandlingInStreams extends App {
   println(future1) // Future(Failure(java.lang.ArithmeticException: / by zero))
 
   println("1.2) stream throws Exception w/o recover but w/ Resume supervisionStrategy")
-  // note: the default stopping strategy would complete the stream with failure on the first element that throws an Exception
+  // note: the default stopping strategy (Supervision.stop) would complete the stream with failure on the first element that throws an Exception
   val future12: Future[Done] = Source(-5 to 5)
     .map({x => println(s"before: $x"); x})
     .map(x => 1 / x) // before: 1/-5 = 0, 1/-4 = 0, 1/-3 = 0, 1/-2 = 0, 1/-1 = -1, 1/0 (dropped), 1/1, 2/2, 3/3, 4/4, 5/5
