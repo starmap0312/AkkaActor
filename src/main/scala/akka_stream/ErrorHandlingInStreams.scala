@@ -107,6 +107,15 @@ object ErrorHandlingInStreams extends App {
   // ii) however, the wrapped Source can however be cancelled by "cancelling" this Source
   //     when that happens, the wrapped Source, if currently running will be cancelled, and it will not be restarted.
   //     this can be triggered simply by the downstream cancelling, or externally by introducing a KillSwitch right after this Source in the graph.
+
+  // 5) Source.future
+  //    this emits a single value when the given Future is successfully completed and then completes the stream
+  //    the stream fails if the Future is completed with a failure
+  val f1: Future[Done] = Source.future(Future.successful(1)).runForeach(x => println(s"Source.future succeed: $x")) // Source.future succeed: 1
+  println(Await.ready(f1, 1.seconds)) // Future(Success(Done))
+  val f2: Future[Done] = Source.future(Future.failed(new Exception("Source.future fails"))).runForeach(println) // the stream fails, no element reaches the print sink
+  println(Await.ready(f2, 1.seconds)) // Future(Failure(java.lang.Exception: Source.future fails))
+
   StdIn.readLine()
   system.terminate()
 }
