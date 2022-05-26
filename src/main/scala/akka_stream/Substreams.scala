@@ -150,31 +150,31 @@ object Substreams extends App {
   //    splitAfter: end the current substream when the predicate is true
   Thread.sleep(1000)
   println("splitWhen")
-  Source(1 to 99)
+  Source(1 to 10)
     .map(elem => elem)
-    .sliding(2) // "Vector(1, 2), Vector(2, 3)", "Vector(3, 4), Vector(4, 5)", ..., Vector(98, 99)
+    .sliding(2) // "Vector(1, "2"), Vector(2, 3)", "Vector(3, "4"), Vector(4, 5)", ..., "Vector(7, "8"), Vector(8, 9)", "Vector(9, 10)"
     .splitWhen { elems =>
       val cur = elems.head
       val next = elems.last
-      next % 2 == 0 // begin a new sub-stream at Vector(1, 2), Vector(3, 4), ...
+      next % 2 == 0 // begin a new sub-stream at Vector(1, "2"), Vector(3, "4"), ..., Vector(7, "8") & lastly Vector(9, 10)
     }
     .fold(Seq.empty[Int])((seq, x) => seq ++ x)
-    .concatSubstreams // List(1, 2, 2, 3), List(3, 4, 4, 5), ..., List(95, 96, 96, 97), List(97, 98, 98, 99)
+    .concatSubstreams // List(1, 2, 2, 3), List(3, 4, 4, 5), ..., List(7, 8, 8, 9), List(97, 98, 98, 99)
     .to(Sink.foreach(println))
     .run()
 
   Thread.sleep(1000)
   println("splitAfter")
-  Source(1 to 99)
+  Source(1 to 10)
     .map(elem => elem)
-    .sliding(2) // "Vector(1, 2)", "Vector(2, 3), Vector(3, 4)", "Vector(4, 5), Vector(5, 6)", ..., "Vector(96, 97), Vector(97, 98)", "Vector(98, 99)"
+    .sliding(2) // "Vector(1, "2")", "Vector(2, 3), Vector(3, "4")", "Vector(4, 5), Vector(5, "6")", ..., "Vector(6, 7), Vector(7, "8")", "Vector(8, 9), Vector(9, "10")"
     .splitAfter { elems =>
       val cur = elems.head
       val next = elems.last
       next % 2 == 0 // end the current substream at Vector(1, 2), Vector(3, 4), Vector(5, 6), ...
     }
     .fold(Seq.empty[Int])((seq, x) => seq ++ x)
-    .concatSubstreams // List(1, 2), List(2, 3, 3, 4), List(4, 5, 5, 6), ..., List(96, 97, 97, 98), List(98, 99)
+    .concatSubstreams // List(1, 2), List(2, 3, 3, 4), List(4, 5, 5, 6), ..., List(6, 7, 7, 8), List(8, 9, 9, 10)
     .to(Sink.foreach(println))
     .run()
 }
